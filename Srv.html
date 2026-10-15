@@ -1,0 +1,4314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anime Survivor - Mazmorras, Gacha & Chibi HD</title>
+<style>
+  :root{
+    --bg:#080b16; --bg2:#121833; --panel:#151b38; --panel2:#1d2550;
+    --text:#f0eefc; --muted:#9aa0c7; --accent:#ff5fa2; --accent2:#5fc9ff;
+    --accent3:#ffd25f; --good:#6ef2a0; --danger:#ff5f6d; --border:#2a3268;
+    --ssr:#ffd25f; --sr:#c49bff; --r:#5fc9ff;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; background:radial-gradient(ellipse at top, var(--bg2), var(--bg));
+    color:var(--text); font-family:'Courier New',monospace,system-ui;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    overflow-x:hidden; position:relative;
+  }
+  #bgParticles{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; opacity:0.65;}
+  #app{max-width:1000px; margin:0 auto; padding:14px 16px; position:relative; z-index:1;}
+
+  .top-bar{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+  h1{
+    font-size:24px; margin:0;
+    background:linear-gradient(90deg,var(--accent),var(--accent3),var(--accent2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:1.5px; font-weight:900;
+  }
+  .sub{color:var(--muted); font-size:12px; margin:2px 0 8px;}
+  .currency-pill{
+    background:#0d1228; border:2px solid var(--accent3); border-radius:8px;
+    padding:6px 12px; font-weight:900; font-size:14px; color:var(--accent3);
+    display:flex; align-items:center; gap:6px; box-shadow:0 3px 0 #060812;
+  }
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .card{
+    background:rgba(21,27,56,.92); border:2px solid var(--border); border-radius:12px;
+    padding:14px; margin-bottom:12px; box-shadow:0 6px 0 #060812; backdrop-filter:blur(4px);
+  }
+
+  /* DOJO INTERACTIVO Y PANEL DE ESTADÍSTICAS CON RETRATO HD */
+  .hero-showcase{display:grid; grid-template-columns:1.25fr 1fr; gap:14px; align-items:stretch;}
+  @media (max-width:760px){ .hero-showcase{grid-template-columns:1fr;} }
+  .stats-panel{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px;
+    padding:12px 14px; display:flex; flex-direction:column; justify-content:space-between; gap:8px;
+  }
+  .profile-top{display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px;}
+  .big-portrait-wrap{
+    position:relative; width:88px; height:88px; border:2px solid var(--accent);
+    border-radius:10px; overflow:hidden; background:#090c18; flex-shrink:0;
+    box-shadow:0 4px 10px rgba(0,0,0,.5);
+  }
+  .big-portrait-wrap img{width:100%; height:100%; object-fit:cover; image-rendering:pixelated;}
+  .upload-btn-mini{
+    position:absolute; bottom:0; left:0; right:0; background:rgba(10,14,26,.85);
+    color:var(--accent3); font-size:9px; font-weight:700; text-align:center;
+    padding:2px 0; cursor:pointer; border-top:1px solid var(--border);
+  }
+  .upload-btn-mini:hover{background:var(--accent); color:#fff;}
+  .hero-header{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;}
+  .hero-title-big{font-size:19px; font-weight:900; color:var(--accent3);}
+  .hero-role-badge{font-size:10px; background:#0d1228; color:var(--accent2); padding:3px 7px; border-radius:6px; border:1px solid var(--border);}
+  .stat-row{display:flex; align-items:center; gap:8px; font-size:11px; margin:3px 0;}
+  .stat-label{width:76px; color:var(--muted); font-weight:700;}
+  .stat-bar-bg{flex:1; height:10px; background:#0b0f22; border:1px solid var(--border); border-radius:4px; overflow:hidden;}
+  .stat-bar-fill{height:100%; width:0%; transition:width .35s cubic-bezier(.2,.9,.3,1); background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .stat-val{width:50px; text-align:right; font-weight:700; color:var(--text);}
+  .wep-info-box{
+    background:#0d1228; border:1px solid var(--border); border-radius:8px; padding:7px 10px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .wep-info-box img{width:38px; height:38px; image-rendering:pixelated; border:1px solid var(--border); border-radius:6px; background:#151b38;}
+  .dojo-box{
+    background:#0b0f22; border:2px solid var(--accent2); border-radius:10px; position:relative;
+    overflow:hidden; display:flex; flex-direction:column; min-height:215px; cursor:pointer;
+  }
+  #dojoCanvas{width:100%; height:100%; flex:1; display:block; image-rendering:pixelated;}
+  .dojo-hint{
+    position:absolute; bottom:6px; left:8px; right:8px; text-align:center;
+    font-size:10px; color:#c4d0f5; background:rgba(10,14,26,.78); padding:3px 6px; border-radius:4px; pointer-events:none;
+  }
+  .dojo-tag{
+    position:absolute; top:6px; left:8px; font-size:10px; font-weight:700; color:var(--accent3);
+    background:rgba(10,14,26,.85); padding:2px 7px; border-radius:4px; border:1px solid var(--border); pointer-events:none;
+  }
+
+  /* FILTROS Y BIOMAS */
+  .toolbar-row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;}
+  .filter-tabs, .biome-tabs{display:flex; gap:6px; flex-wrap:wrap;}
+  .tab-btn{
+    font-size:11px; padding:6px 10px; border-radius:6px; background:#0e142b; color:var(--muted);
+    border:1px solid var(--border); cursor:pointer; box-shadow:none; font-weight:700;
+  }
+  .tab-btn:hover{color:var(--text); border-color:var(--accent2);}
+  .tab-btn.active{background:var(--panel2); color:var(--accent3); border-color:var(--accent3);}
+
+  /* CUADRÍCULA DE HÉROES */
+  .chars{display:grid; grid-template-columns:repeat(auto-fill,minmax(126px,1fr)); gap:10px;}
+  .char{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px;
+    padding:8px 6px; text-align:center; cursor:pointer; transition:transform .14s, border-color .14s, box-shadow .14s;
+    user-select:none; box-shadow:0 4px 0 #0b0f24; position:relative; overflow:hidden;
+  }
+  .char:hover{transform:translateY(-4px) scale(1.02); border-color:var(--accent2);}
+  .char.selected{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset, 0 5px 12px rgba(255,95,162,.35);}
+  .char.locked{opacity:0.55; filter:grayscale(0.75);}
+  .char.locked::after{
+    content:"🔒 GACHA"; position:absolute; top:38px; left:50%; transform:translateX(-50%);
+    background:rgba(8,11,22,.92); color:#ffd25f; font-size:9px; font-weight:900;
+    padding:2px 6px; border-radius:4px; border:1px solid #ffd25f; pointer-events:none; z-index:3;
+  }
+  .portrait-frame{
+    width:76px; height:76px; margin:2px auto 4px; border-radius:8px; overflow:hidden;
+    border:2px solid #2e3870; position:relative; background:#090c18;
+  }
+  .char.selected .portrait-frame{border-color:var(--accent3);}
+  .portrait-frame canvas.portrait-cv{width:100%; height:100%; image-rendering:pixelated; display:block;}
+  .chibi-badge{
+    position:absolute; bottom:2px; right:2px; width:28px; height:28px;
+    background:rgba(10,14,26,.82); border:1px solid var(--accent2); border-radius:5px;
+    image-rendering:pixelated; pointer-events:none;
+  }
+  .char img.wep-mini{width:22px;height:22px;image-rendering:pixelated;position:absolute;top:5px;right:5px;background:#0b0f24cc;border:1px solid var(--border);border-radius:4px;z-index:2;}
+  .rarity-badge{
+    position:absolute; top:5px; left:5px; font-size:9px; font-weight:900; padding:1px 5px;
+    border-radius:4px; color:#090c15; text-shadow:none; z-index:2;
+  }
+  .rarity-SSR{background:linear-gradient(90deg,#ffd25f,#ff9f1c); box-shadow:0 0 6px #ffd25f;}
+  .rarity-SR{background:linear-gradient(90deg,#c49bff,#9d4edd); color:#fff;}
+  .rarity-R{background:#5fc9ff;}
+  .star-row{font-size:10px; color:var(--accent3); letter-spacing:1px; margin-top:2px; min-height:13px;}
+  .char .name{font-weight:700; font-size:13px; margin-top:1px;}
+  .char .role{font-size:10px; color:var(--muted);}
+  .char .wname{font-size:9px; color:var(--accent2); margin-top:2px;}
+
+  /* PANTALLA GACHA */
+  .gacha-banner{
+    background:linear-gradient(135deg,#1f1138 0%,#0f1736 55%,#2b1230 100%);
+    border:2px solid var(--accent3); border-radius:12px; padding:14px; position:relative; overflow:hidden;
+  }
+  .gacha-stage{
+    width:100%; height:220px; background:#070a16; border:2px solid var(--border);
+    border-radius:10px; margin:10px 0; display:block; image-rendering:pixelated;
+  }
+  .pity-bar-wrap{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:#0b0f22; border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:11px; margin-bottom:10px;
+  }
+  .pity-track{flex:1; height:8px; background:#161c3a; border-radius:4px; overflow:hidden;}
+  .pity-fill{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent3)); transition:width .25s;}
+  .gacha-results{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-top:12px;
+  }
+  .pull-card{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px; padding:10px 6px;
+    text-align:center; position:relative; animation:popIn .35s cubic-bezier(.18,1.25,.4,1) backwards; cursor:pointer;
+  }
+  .pull-card.SSR{border-color:#ffd25f; box-shadow:0 0 16px rgba(255,210,95,.45); background:radial-gradient(circle at top,#3b2c14,#1a152e);}
+  .pull-card.SR{border-color:#c49bff; box-shadow:0 0 12px rgba(196,155,255,.35);}
+  .pull-card.R{border-color:#5fc9ff;}
+  .pull-card img{width:68px; height:68px; border-radius:6px; border:1px solid #fff3; image-rendering:pixelated; display:block; margin:4px auto;}
+  .pull-tag{font-size:10px; font-weight:900; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:4px;}
+  .pull-tag.new{background:#6ef2a0; color:#092114;}
+  .pull-tag.up{background:#ffd25f; color:#241500;}
+  .replay-ssr-btn{
+    margin-top:5px; font-size:9px; padding:3px 6px; border-radius:4px;
+    background:linear-gradient(90deg,#ffd25f,#ff9f1c); color:#1a0f00;
+    font-weight:900; border:1px solid #fff; cursor:pointer; display:inline-block;
+    box-shadow:0 2px 0 #78350f; text-shadow:none;
+  }
+  .replay-ssr-btn:hover{filter:brightness(1.15);}
+  @keyframes popIn{0%{transform:scale(0.3) translateY(20px); opacity:0;} 100%{transform:scale(1) translateY(0); opacity:1;}}
+
+  /* CINEMÁTICA SSR PIXEL ART (ESTILO GENSHIN / HONKAI) */
+  #ssrCutsceneModal{
+    position:fixed; inset:0; z-index:9999; background:rgba(4,6,15,0.96);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    padding:12px; user-select:none; backdrop-filter:blur(6px);
+  }
+  #ssrCutsceneModal.active{display:flex;}
+  .ssr-stage-wrap{
+    position:relative; width:100%; max-width:920px; aspect-ratio:16/9;
+    border:3px solid #ffd25f; border-radius:12px; overflow:hidden;
+    background:#050712; box-shadow:0 0 45px rgba(255,210,95,0.45), 0 0 0 2px #ff5fa2 inset;
+  }
+  #ssrCutsceneCanvas{
+    width:100%; height:100%; display:block;
+    image-rendering:pixelated; image-rendering:crisp-edges; cursor:pointer;
+  }
+  .ssr-top-bar{
+    position:absolute; top:10px; left:12px; right:12px;
+    display:flex; justify-content:space-between; align-items:center; z-index:3; pointer-events:none;
+  }
+  .ssr-TopBadge{
+    background:rgba(10,14,28,0.88); border:2px solid #ffd25f; color:#ffd25f;
+    padding:4px 10px; border-radius:6px; font-size:11px; font-weight:900;
+    letter-spacing:1px; text-shadow:0 1px 2px #000;
+  }
+  #btnSkipSsrCutscene{
+    pointer-events:auto; background:rgba(15,20,40,0.9); border:2px solid #ffd25f;
+    color:#ffd25f; font-size:11px; padding:6px 12px; border-radius:6px;
+    box-shadow:0 3px 0 #593d00;
+  }
+  .ssr-bottom-hint{
+    margin-top:8px; font-size:12px; color:#ffd25f; font-weight:700;
+    text-align:center; letter-spacing:0.5px; text-shadow:0 2px 4px #000;
+  }
+
+  /* Galería Fotográfica de Armas */
+  .gallery-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(275px,1fr)); gap:14px;}
+  .wep-card{
+    background:var(--panel2); border:2px solid var(--border); border-radius:10px;
+    padding:12px; box-shadow:0 4px 0 #080b1a; display:flex; flex-direction:column; gap:8px;
+  }
+  .wep-header{display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:6px;}
+  .wep-title{font-weight:700; font-size:14px; color:var(--accent3);}
+  .wep-owner{font-size:11px; color:var(--muted);}
+  .wep-showcase{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:#0b0f22; border:1px solid var(--border); border-radius:8px; padding:8px;
+  }
+  .wep-live-box{
+    width:64px; height:64px; background:radial-gradient(circle,#1f295a,#090d1c);
+    border:2px solid var(--accent2); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .wep-live-box canvas{width:56px; height:56px; image-rendering:pixelated;}
+  .wep-sheet-box{flex:1; text-align:center;}
+  .wep-sheet-box img{width:100%; max-width:192px; height:auto; image-rendering:pixelated; border:1px dashed #394480; background:#070a16; border-radius:4px;}
+  .wep-sheet-label{font-size:10px; color:var(--muted); margin-top:3px;}
+
+  button{
+    font-family:inherit; font-size:13px; font-weight:700; border:2px solid #fff3; border-radius:8px;
+    padding:10px 16px; cursor:pointer; background:linear-gradient(180deg,var(--accent),#d9387a);
+    color:#fff; text-shadow:0 1px 2px #000; box-shadow:0 4px 0 #6e173b; transition:filter .12s, transform .12s;
+  }
+  button:hover{filter:brightness(1.1);}
+  button:active{transform:translateY(2px); box-shadow:0 2px 0 #6e173b;}
+  button.secondary{
+    background:linear-gradient(180deg,#2b6cb0,#1e4e8c); color:#fff; border:2px solid var(--accent2);
+    box-shadow:0 4px 0 #0f294a;
+  }
+  button.gold{
+    background:linear-gradient(180deg,#f59e0b,#b45309); color:#fff; border:2px solid var(--accent3);
+    box-shadow:0 4px 0 #78350f;
+  }
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;}
+  #gameWrap{position:relative; width:100%; aspect-ratio:4/3; max-height:74vh; border-radius:10px; overflow:hidden; border:3px solid var(--border); background:#0d1228; box-shadow:0 8px 0 #060812;}
+  #canvas{display:block; width:100%; height:100%; touch-action:none; image-rendering:pixelated; image-rendering:crisp-edges;}
+  #hud{position:absolute; top:8px; left:8px; right:8px; display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none; font-size:12px; z-index:3;}
+  .hudbox{background:rgba(10,14,26,.85); border:2px solid var(--border); border-radius:6px; padding:6px 10px;}
+  #hpbarOuter{width:140px; height:10px; background:#2a3268; border:1px solid #000; margin-top:4px;}
+  #hpbarInner{height:100%; background:linear-gradient(90deg,var(--danger),#ff9aa3); width:100%; transition:width .15s;}
+  #hpbarOuter.flash{animation:hpflash .25s ease;}
+  @keyframes hpflash{0%{box-shadow:0 0 0 3px #ff5f6d;}100%{box-shadow:0 0 0 0px transparent;}}
+  #bossBar{position:absolute; top:48px; left:50%; transform:translateX(-50%); width:72%; max-width:380px; display:none; z-index:4; pointer-events:none;}
+  #bossBar.active{display:block;}
+  #bossBarName{font-size:11px; text-align:center; color:var(--accent3); margin-bottom:2px; text-shadow:0 1px 2px #000; font-weight:700;}
+  #bossBarOuter{height:12px; background:#1a1026; border:2px solid var(--accent3); overflow:hidden;}
+  #bossBarInner{height:100%; background:linear-gradient(90deg,#ff3b5c,#ffd25f); width:100%; transition:width .15s;}
+  #alertBanner{
+    position:absolute; top:82px; left:50%; transform:translateX(-50%);
+    background:rgba(18,10,36,.92); border:2px solid #c49bff; color:#ffd25f;
+    padding:6px 14px; border-radius:8px; font-size:12px; font-weight:900;
+    text-align:center; pointer-events:none; display:none; z-index:4;
+    box-shadow:0 0 16px rgba(196,155,255,.5);
+  }
+  #alertBanner.active{display:block; animation:popIn .25s ease;}
+  #xpbarOuter{width:100%; height:8px; background:#14182e; border-top:2px solid #000; position:absolute; bottom:0; left:0; right:0;}
+  #xpbarInner{height:100%; background:linear-gradient(90deg,#3b82f6,#6ef2a0); width:0%; transition:width .15s;}
+  #levelup{
+    position:absolute; inset:0; background:rgba(5,7,16,.88); display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; padding:16px; z-index:5;
+  }
+  #levelup.active{display:flex;}
+  #levelup h2{margin:0 0 6px; color:var(--accent3);}
+  .upgrades{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .upg{
+    background:var(--panel2); border:2px solid var(--border); border-radius:8px; padding:12px 14px; width:155px; cursor:pointer; text-align:center; box-shadow:0 4px 0 #070a14;
+  }
+  .upg:hover{border-color:var(--accent3); transform:translateY(-2px);}
+  .upg .uicon{font-size:26px;}
+  .upg .uname{font-weight:700; font-size:13px; margin:4px 0 2px;}
+  .upg .udesc{font-size:11px; color:var(--muted);}
+  #gameover{
+    position:absolute; inset:0; background:rgba(5,7,16,.92); display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; text-align:center; padding:16px; z-index:6;
+  }
+  #gameover.active{display:flex;}
+  #gameover h2{color:var(--danger); margin:0;}
+  .joy{position:absolute; bottom:16px; left:16px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.08); border:2px solid var(--border); touch-action:none; z-index:3;}
+  .joyKnob{position:absolute; width:46px; height:46px; border-radius:50%; background:rgba(255,95,162,.65); top:25px; left:25px; pointer-events:none;}
+  #mapLabel{position:absolute;right:8px;bottom:22px;background:rgba(10,14,26,.85);border:2px solid var(--border);border-radius:6px;padding:5px 8px;font-size:10px;pointer-events:none;z-index:3;}
+  .footer-note{text-align:center; font-size:11px; color:var(--muted); margin-top:10px;}
+</style>
+</head>
+<body>
+<canvas id="bgParticles"></canvas>
+<div id="ssrCutsceneModal">
+  <div class="ssr-stage-wrap">
+    <div class="ssr-top-bar">
+      <div class="ssr-TopBadge" id="ssrQueueBadge">✨ INVOCACIÓN ASTRAL 5★ SSR ✨</div>
+      <button id="btnSkipSsrCutscene">⏭️ Saltar / Continuar</button>
+    </div>
+    <canvas id="ssrCutsceneCanvas" width="480" height="270"></canvas>
+  </div>
+  <div class="ssr-bottom-hint" id="ssrBottomHint">⚡ Haz clic en la pantalla para avanzar de fase o continuar ⚡</div>
+</div>
+<input type="file" id="customPortraitInput" accept="image/*" style="display:none;">
+<div id="app">
+  <div class="top-bar">
+    <div>
+      <h1>⚔️ ANIME SURVIVOR: PORTALES & MAZMORRAS ⚔️</h1>
+      <p class="sub">Iconos Retrato HD · Chibi en Partida · ¡Portal de Mazmorra cada 5 Niveles!</p>
+    </div>
+    <div class="row">
+      <div class="currency-pill" title="Cristales Astrales para el Gacha">💎 <span id="crystalCountText">1200</span></div>
+      <button class="gold" id="btnOpenGacha">🎰 Altar Gacha</button>
+      <button class="secondary" id="btnOpenGallery">📸 Fotos Armas</button>
+      <button class="secondary" id="btnSoundToggle">🔊 SFX: ON</button>
+    </div>
+  </div>
+
+  <!-- SELECT SCREEN (MENÚ INTERACTIVO) -->
+  <div class="screen active" id="screen-select">
+    <div class="card hero-showcase">
+      <div class="stats-panel">
+        <div>
+          <div class="profile-top">
+            <div class="big-portrait-wrap" title="Icono de Retrato Anime Pixel Art Detallado">
+              <img id="stBigPortrait" src="" alt="Retrato HD">
+              <div class="upload-btn-mini" id="btnUploadCustom">📷 Subir Foto</div>
+            </div>
+            <div style="flex:1">
+              <div class="hero-header">
+                <div>
+                  <span class="hero-title-big" id="stName">Hana</span>
+                  <span id="stStars" style="color:var(--accent3); font-size:12px; margin-left:4px;">★1</span>
+                </div>
+                <span class="hero-role-badge" id="stRole">Hada / Elfa del Bosque</span>
+              </div>
+              <div style="font-size:11px; color:var(--muted); margin-top:5px; line-height:1.35;" id="stLore">
+                Hada élfica nocturna con heterocromía (ojo esmeralda y carmesí). En su icono luce su retrato detallado y al jugar se transforma en Chibi.
+              </div>
+            </div>
+          </div>
+
+          <div class="stat-row">
+            <span class="stat-label">❤ VIDA</span>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" id="barHp"></div></div>
+            <span class="stat-val" id="valHp">125</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">👟 VELOC.</span>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" id="barSpd"></div></div>
+            <span class="stat-val" id="valSpd">2.1</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">💥 DAÑO</span>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" id="barDmg"></div></div>
+            <span class="stat-val" id="valDmg">12</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">⚡ CADENCIA</span>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" id="barCd"></div></div>
+            <span class="stat-val" id="valCd">0.85s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">🎯 ALCANCE</span>
+            <div class="stat-bar-bg"><div class="stat-bar-fill" id="barRng"></div></div>
+            <span class="stat-val" id="valRng">85</span>
+          </div>
+        </div>
+
+        <div class="wep-info-box">
+          <img id="stWepIcon" src="" alt="Arma">
+          <div style="flex:1">
+            <div style="font-size:12px; font-weight:700; color:var(--accent3);" id="stWepName">Esporas mágicas</div>
+            <div style="font-size:10px; color:var(--muted);" id="stWepType">Tipo: Orbital · En partida: Modelo Chibi SD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MINI CANVAS INTERACTIVO DEL DOJO -->
+      <div class="dojo-box" id="dojoBox" title="¡Haz clic para ver al Chibi hacer Dash y Ataque Especial!">
+        <div class="dojo-tag">🧸 VISTA PREVIA CHIBI EN COMBATE</div>
+        <canvas id="dojoCanvas" width="360" height="215"></canvas>
+        <div class="dojo-hint">💡 Cada 5 niveles en partida se abrirá un Portal hacia una Mazmorra Élite</div>
+      </div>
+    </div>
+
+    <!-- BARRA DE FILTROS, BIOMAS Y RULETA -->
+    <div class="card">
+      <div class="toolbar-row">
+        <div class="filter-tabs" id="filterTabs">
+          <button class="tab-btn active" data-filter="all">Todos (12)</button>
+          <button class="tab-btn" data-filter="orbit">🌀 Orbitales</button>
+          <button class="tab-btn" data-filter="bolt">🎯 Proyectiles</button>
+          <button class="tab-btn" data-filter="nova">💥 Novas</button>
+        </div>
+        <div class="biome-tabs" id="biomeTabs">
+          <button class="tab-btn active" data-biome="forest">🌲 Bosque Antiguo</button>
+          <button class="tab-btn" data-biome="sakura">🌸 Santuario Cerezos</button>
+          <button class="tab-btn" data-biome="abyss">🌙 Callejón Nocturno</button>
+        </div>
+      </div>
+
+      <div class="chars" id="charGrid"></div>
+
+      <div class="row" style="margin-top:14px;">
+        <button class="gold" id="btnRandomHero">🎲 Ruleta de Héroe</button>
+        <button id="btnStart">▶️ ¡Jugar en Modo Chibi!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GACHA SUMMON SCREEN -->
+  <div class="screen" id="screen-gacha">
+    <div class="card gacha-banner">
+      <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+        <button class="secondary" id="btnCloseGacha">⬅️ Volver a Héroes</button>
+        <div style="text-align:center;">
+          <div style="font-size:18px; font-weight:900; color:var(--accent3);">✨ ALTAR DE INVOCACIÓN ASTRAL ✨</div>
+          <div style="font-size:11px; color:var(--muted);">SSR (5★): 10% · SR (4★): 30% · R (3★): 60% · ¡Duplicados suben Estrellas (+15% Stats)!</div>
+        </div>
+        <button class="secondary" id="btnFreeCrystals">🎁 Bono (+500 💎)</button>
+      </div>
+
+      <div class="pity-bar-wrap">
+        <span>🔥 <b>Garantía Pity SSR:</b> <span id="pityText">0 / 20</span> tiradas</span>
+        <div class="pity-track"><div class="pity-fill" id="pityFill" style="width:0%"></div></div>
+        <span style="color:var(--accent3); font-weight:700;">Colección: <span id="collectionCountText">4/12</span></span>
+      </div>
+
+      <canvas id="gachaCanvas" class="gacha-stage" width="760" height="220"></canvas>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="secondary" id="btnPull1">🌠 Invocar x1 (100 💎)</button>
+        <button class="gold" id="btnPull10">🌟 Multi-Invocar x10 (900 💎 · ¡SR/SSR Garantizado!)</button>
+        <button id="btnDemoSsrCutscene" title="Ver la animación estilo Genshin/Honkai en Pixel Art">🎬 Ver Cinemática SSR</button>
+      </div>
+
+      <div class="gacha-results" id="gachaResults"></div>
+    </div>
+  </div>
+
+  <!-- PHOTO GALLERY SCREEN -->
+  <div class="screen" id="screen-gallery">
+    <div class="card">
+      <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+        <button class="secondary" id="btnCloseGallery">⬅️ Volver al Menú</button>
+        <button id="btnDownloadSheet">💾 Descargar Póster PNG (Retratos + Chibis + Armas)</button>
+      </div>
+      <p style="margin:0 0 14px;color:var(--muted);font-size:12px;text-align:center">
+        A la izquierda ves la <b>animación en vivo</b> y a la derecha la <b>foto de los 4 fotogramas (Sprite Sheet 24×24)</b>.
+      </p>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen" id="screen-game">
+    <div id="gameWrap">
+      <canvas id="canvas"></canvas>
+      <div id="hud">
+        <div class="hudbox" style="display:flex; gap:8px; align-items:center;">
+          <img id="hudPortrait" src="" style="width:36px;height:36px;border-radius:6px;border:1px solid var(--accent);image-rendering:pixelated;" alt="">
+          <div>
+            <div id="hpText">❤ 100/100</div>
+            <div id="hpbarOuter"><div id="hpbarInner"></div></div>
+          </div>
+        </div>
+        <div class="hudbox" style="text-align:right">
+          <div id="timerText">00:00</div>
+          <div id="levelText">Nv. 1</div>
+          <div id="threatText" style="color:#ff9aa3; font-size:10px; font-weight:700;">Amenaza: Normal</div>
+          <div id="runCrystalsText" style="color:var(--accent3); font-weight:700; margin-top:1px;">+0 💎</div>
+        </div>
+      </div>
+      <div id="bossBar"><div id="bossBarName">Jefe</div><div id="bossBarOuter"><div id="bossBarInner"></div></div></div>
+      <div id="alertBanner">🌀 ¡PORTAL DE MAZMORRA ABIERTO!</div>
+      <div id="xpbarOuter"><div id="xpbarInner"></div></div>
+      <div id="mapLabel">🌲 BOSQUE ANTIGUO</div>
+
+      <div class="joy" id="joy"><div class="joyKnob" id="joyKnob"></div></div>
+
+      <div id="levelup">
+        <h2>¡Subiste de nivel!</h2>
+        <div class="upgrades" id="upgradeGrid"></div>
+      </div>
+
+      <div id="gameover">
+        <h2>Has caído…</h2>
+        <p id="goStats" style="color:var(--muted)"></p>
+        <div class="row">
+          <button id="btnRetry">Reintentar</button>
+          <button class="gold" id="btnGoGacha">🎰 Ir al Gacha</button>
+          <button class="secondary" id="btnMenu">Menú</button>
+        </div>
+      </div>
+    </div>
+    <p class="footer-note">WASD / flechas / joystick: moverte · SHIFT: correr · ESPACIO: dash · ¡Entra al Portal cada 5 niveles!</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- SINTETIZADOR RETRO 8-BITS ----------
+  let sfxEnabled = true;
+  let audioCtx = null;
+  function playSfx(type){
+    if(!sfxEnabled) return;
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if(type === 'hover'){
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(680, now + 0.045);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.045);
+        osc.start(now); osc.stop(now + 0.05);
+      } else if(type === 'select'){
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(660, now + 0.05);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.12);
+        osc.start(now); osc.stop(now + 0.13);
+      } else if(type === 'attack'){
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.09);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.09);
+        osc.start(now); osc.stop(now + 0.1);
+      } else if(type === 'start'){
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(330, now);
+        osc.frequency.setValueAtTime(440, now + 0.07);
+        osc.frequency.setValueAtTime(660, now + 0.14);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.28);
+        osc.start(now); osc.stop(now + 0.29);
+      } else if(type === 'portal'){
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(720, now + 0.45);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.46);
+        osc.start(now); osc.stop(now + 0.47);
+      } else if(type === 'gacha_fall'){
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.55);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
+        osc.start(now); osc.stop(now + 0.56);
+      } else if(type === 'gacha_ssr'){
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.08);
+        osc.frequency.setValueAtTime(783.99, now + 0.16);
+        osc.frequency.setValueAtTime(1046.5, now + 0.24);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.55);
+        osc.start(now); osc.stop(now + 0.56);
+      } else if(type === 'ssr_meteor'){
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(293.66, now);
+        osc.frequency.setValueAtTime(440.0, now + 0.09);
+        osc.frequency.setValueAtTime(587.33, now + 0.18);
+        osc.frequency.exponentialRampToValueAtTime(880.0, now + 0.55);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.58);
+        osc.start(now); osc.stop(now + 0.6);
+      } else if(type === 'ssr_gold_shift'){
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(587.33, now);
+        osc.frequency.setValueAtTime(880.0, now + 0.06);
+        osc.frequency.setValueAtTime(1174.66, now + 0.12);
+        osc.frequency.setValueAtTime(1760.0, now + 0.20);
+        gain.gain.setValueAtTime(0.11, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.65);
+        osc.start(now); osc.stop(now + 0.66);
+      } else if(type === 'ssr_shatter'){
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(920, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.28);
+        gain.gain.setValueAtTime(0.11, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.30);
+        osc.start(now); osc.stop(now + 0.32);
+      } else if(type && type.startsWith('ssr_star_')){
+        const idx = parseInt(type.split('_')[2] || '1', 10);
+        const notes = [523.25, 587.33, 659.25, 783.99, 1046.5];
+        const freq = notes[Math.min(4, Math.max(0, idx - 1))];
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.setValueAtTime(freq * 1.5, now + 0.04);
+        gain.gain.setValueAtTime(0.10, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.22);
+        osc.start(now); osc.stop(now + 0.24);
+      } else if(type === 'ssr_fanfare'){
+        osc.type = 'square';
+        const chord = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
+        chord.forEach((f, i) => {
+          osc.frequency.setValueAtTime(f, now + i * 0.065);
+        });
+        gain.gain.setValueAtTime(0.10, now);
+        gain.gain.linearRampToValueAtTime(0.001, now + 0.75);
+        osc.start(now); osc.stop(now + 0.78);
+      }
+    }catch(e){}
+  }
+
+  document.getElementById('btnSoundToggle').addEventListener('click', function(){
+    sfxEnabled = !sfxEnabled;
+    this.textContent = sfxEnabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
+    if(sfxEnabled) playSfx('select');
+  });
+
+  const IMG = {};
+  const PORTRAIT_CANVASES = {};
+  const PORTRAIT_FG_CANVASES = {};
+  const PORTRAIT_SILHOUETTE_CANVASES = {};
+  const SPRITE_DEFS = {};
+  const WEAPON_DEFS = {};
+  const ENV_SPRITES = {};
+
+  function _img(src){ const i = new Image(); i.src = src; return i; }
+
+  function hexToRgb(hex){
+    const v = parseInt(hex.replace('#',''), 16);
+    return [(v>>16)&255, (v>>8)&255, v&255];
+  }
+  function shade(hex, amt){
+    const [r,g,b] = hexToRgb(hex);
+    const cl = x => Math.max(0, Math.min(255, Math.round(x + amt)));
+    return `rgb(${cl(r)},${cl(g)},${cl(b)})`;
+  }
+
+  function applyOutlineAndBevel(ctx, ox, oy, w, h, outlineRGB){
+    const imgData = ctx.getImageData(ox, oy, w, h);
+    const d = imgData.data;
+    const out = new Uint8ClampedArray(d);
+    const isSolid = (x,y) => {
+      if(x<0||y<0||x>=w||y>=h) return false;
+      return d[(y*w+x)*4+3] > 200;
+    };
+    for(let y=0; y<h; y++){
+      for(let x=0; x<w; x++){
+        const idx = (y*w+x)*4;
+        if(d[idx+3] === 0){
+          if(isSolid(x-1,y) || isSolid(x+1,y) || isSolid(x,y-1) || isSolid(x,y+1)){
+            out[idx] = outlineRGB[0];
+            out[idx+1] = outlineRGB[1];
+            out[idx+2] = outlineRGB[2];
+            out[idx+3] = 255;
+          }
+        } else if(d[idx+3] > 200){
+          if(!isSolid(x, y-1) && y > 1){
+            out[idx] = Math.min(255, d[idx] + 22);
+            out[idx+1] = Math.min(255, d[idx+1] + 22);
+            out[idx+2] = Math.min(255, d[idx+2] + 22);
+          }
+          if(!isSolid(x, y+1) && y < h-2){
+            out[idx] = Math.max(0, d[idx] - 24);
+            out[idx+1] = Math.max(0, d[idx+1] - 24);
+            out[idx+2] = Math.max(0, d[idx+2] - 24);
+          }
+        }
+      }
+    }
+    imgData.data.set(out);
+    ctx.putImageData(imgData, ox, oy);
+  }
+
+  // ---------- ESPECIFICACIONES DE LOS 12 HÉROES (RETRATO HD + CHIBI SD) ----------
+  const HERO_SPECS = {
+    hana:     { hair:'#d8eb98', skin:'#ffe2d1', eyeL:'#1fa69b', eyeR:'#e62e4d', outfit:'#3d2e38', sec:'#241b22', trim:'#5fc9ff', cape:'#b8fff2', headType:'elf_fairy', weapon:'nature_orb' },
+    ronin:    { hair:'#e05382', skin:'#ffe0c4', eyeL:'#ff2a6d', eyeR:'#ff2a6d', outfit:'#ff5fa2', sec:'#2c1e38', trim:'#ffd25f', cape:'#7a2048', headType:'ponytail',  weapon:'katana' },
+    miko:     { hair:'#4a2328', skin:'#ffe4cc', eyeL:'#d92648', eyeR:'#d92648', outfit:'#ffffff', sec:'#d92648', trim:'#ffd25f', cape:null,      headType:'ribbon',    weapon:'ofuda' },
+    mecha:    { hair:'#3b6998', skin:'#ffe0c8', eyeL:'#00ffff', eyeR:'#00ffff', outfit:'#4788c7', sec:'#1c314d', trim:'#ff8f5f', cape:'#254269', headType:'helmet',    weapon:'cannon' },
+    ninja:    { hair:'#235c3d', skin:'#ffd8bd', eyeL:'#52ff9b', eyeR:'#52ff9b', outfit:'#265c42', sec:'#142e21', trim:'#6ef2a0', cape:'#45c478', headType:'hood',      weapon:'shuriken' },
+    maho:     { hair:'#e2b8ff', skin:'#ffe6d4', eyeL:'#9d4edd', eyeR:'#9d4edd', outfit:'#6c35b5', sec:'#3b196b', trim:'#ffd25f', cape:'#51238c', headType:'witchhat',  weapon:'staff_orb' },
+    oni:      { hair:'#f5f3fa', skin:'#ff785e', eyeL:'#ffd25f', eyeR:'#ffd25f', outfit:'#8c2d19', sec:'#3d140a', trim:'#ffbd59', cape:'#591b0e', headType:'horns',     weapon:'kanabo' },
+    eleonore: { hair:'#ffc2d4', skin:'#ffe5d4', eyeL:'#ff1e56', eyeR:'#ffd25f', outfit:'#b81d58', sec:'#4a0c24', trim:'#ffd25f', cape:'#80113a', headType:'witchhat',  weapon:'staff_orb' },
+    joanna:   { hair:'#ffd25f', skin:'#ffe0c4', eyeL:'#2998ff', eyeR:'#2998ff', outfit:'#c9d6ea', sec:'#264f80', trim:'#ffd25f', cape:'#2f6eb5', headType:'tiara',     weapon:'claymore' },
+    raiden:   { hair:'#8b66e8', skin:'#ffe0c8', eyeL:'#ffd25f', eyeR:'#b99aff', outfit:'#3b256e', sec:'#1c1136', trim:'#b99aff', cape:'#5636a1', headType:'spiky',     weapon:'katana_elec' },
+    kai:      { hair:'#cad4ed', skin:'#f5d6c6', eyeL:'#ff4757', eyeR:'#ff4757', outfit:'#28304d', sec:'#141829', trim:'#7082bd', cape:'#1d233b', headType:'masked',    weapon:'kunai' },
+    sol:      { hair:'#ffae33', skin:'#ffe2cc', eyeL:'#ff5500', eyeR:'#ffd25f', outfit:'#e0531f', sec:'#7a1f0c', trim:'#ffd25f', cape:'#b53512', headType:'halo',      weapon:'sunspear' }
+  };
+
+  // ---------- 1. GENERADOR DE RETRATOS ANIME PIXEL ART DETALLADOS CON POSES ÚNICAS (64x64 NATIVO) ----------
+  const POSE_CONFIGS = {
+    hana: {
+      poseTitle: 'Susurro de Hada (Giro 3/4 + Mariposa)',
+      bgTop: '#081c24', bgMid: '#0f3138', bgBot: '#184a45',
+      hx: 17, hy: 13, dir: 1, tilt: 1,
+      tx: 13, ty: 40, tw: 28,
+      expr: 'sweet', hairStyle: 'twin_flowing'
+    },
+    ronin: {
+      poseTitle: 'Guardia Iaido (Katana Cruzada)',
+      bgTop: '#240b18', bgMid: '#3d1227', bgBot: '#591834',
+      hx: 18, hy: 14, dir: -1, tilt: -1,
+      tx: 16, ty: 41, tw: 30,
+      expr: 'fierce', hairStyle: 'wild_ponytail'
+    },
+    miko: {
+      poseTitle: 'Exorcismo Sagrado (Mudra Ofuda)',
+      bgTop: '#1f0d1d', bgMid: '#38152b', bgBot: '#541e36',
+      hx: 23, hy: 13, dir: -1, tilt: 0,
+      tx: 21, ty: 40, tw: 28,
+      expr: 'wink_left', hairStyle: 'hime_cut'
+    },
+    mecha: {
+      poseTitle: 'Fijación de Blanco (Visor Táctico)',
+      bgTop: '#071326', bgMid: '#0e2547', bgBot: '#173b6b',
+      hx: 21, hy: 14, dir: -1, tilt: 0,
+      tx: 17, ty: 40, tw: 32,
+      expr: 'visor_hud', hairStyle: 'short_tactical'
+    },
+    ninja: {
+      poseTitle: 'Salto Shinobi (Abanico de Shurikens)',
+      bgTop: '#09171e', bgMid: '#102b33', bgBot: '#174247',
+      hx: 24, hy: 16, dir: -1, tilt: -1,
+      tx: 22, ty: 42, tw: 27,
+      expr: 'ninja_glare', hairStyle: 'wind_swept'
+    },
+    maho: {
+      poseTitle: 'Levitar Astral (Mano en Sombrero)',
+      bgTop: '#140929', bgMid: '#241247', bgBot: '#361c66',
+      hx: 16, hy: 15, dir: 1, tilt: 1,
+      tx: 14, ty: 41, tw: 27,
+      expr: 'wink_happy', hairStyle: 'wavy_curls'
+    },
+    oni: {
+      poseTitle: 'Furia Volcánica (Kanabo al Hombro)',
+      bgTop: '#260b07', bgMid: '#4a160d', bgBot: '#732414',
+      hx: 16, hy: 13, dir: 1, tilt: -1,
+      tx: 10, ty: 38, tw: 36,
+      expr: 'fang_grin', hairStyle: 'wild_mane'
+    },
+    eleonore: {
+      poseTitle: 'Mirada sobre el Hombro (Rosa Ígnea)',
+      bgTop: '#1c0613', bgMid: '#360b24', bgBot: '#541136',
+      hx: 23, hy: 13, dir: -1, tilt: 1,
+      tx: 22, ty: 39, tw: 28,
+      expr: 'queen_smirk', hairStyle: 'royal_drills'
+    },
+    joanna: {
+      poseTitle: 'Juramento Real (Mandoble al Frente)',
+      bgTop: '#0d1b33', bgMid: '#19335c', bgBot: '#29528a',
+      hx: 22, hy: 13, dir: -1, tilt: 0,
+      tx: 18, ty: 40, tw: 30,
+      expr: 'noble', hairStyle: 'braided_crown'
+    },
+    raiden: {
+      poseTitle: 'Corte Relámpago (Postura Battojutsu)',
+      bgTop: '#110926', bgMid: '#201247', bgBot: '#341d6b',
+      hx: 19, hy: 16, dir: 1, tilt: -1,
+      tx: 15, ty: 41, tw: 30,
+      expr: 'storm_glare', hairStyle: 'lightning_spikes'
+    },
+    kai: {
+      poseTitle: 'Guardia Sombría (Kunai Invertido)',
+      bgTop: '#0b0d17', bgMid: '#15192b', bgBot: '#212742',
+      hx: 22, hy: 14, dir: -1, tilt: -1,
+      tx: 19, ty: 40, tw: 29,
+      expr: 'cold_assassin', hairStyle: 'asym_bangs'
+    },
+    sol: {
+      poseTitle: 'Alba Radiante (Lanza Solar Alzada)',
+      bgTop: '#2b0f08', bgMid: '#592312', bgBot: '#8c3f19',
+      hx: 17, hy: 13, dir: 1, tilt: 1,
+      tx: 14, ty: 40, tw: 28,
+      expr: 'radiant_smile', hairStyle: 'flame_locks'
+    }
+  };
+
+  function buildDetailedAnimePortrait(id, spec){
+    const cv = document.createElement('canvas');
+    cv.width = 64; cv.height = 64;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    const fgCv = document.createElement('canvas');
+    fgCv.width = 64; fgCv.height = 64;
+    const fgCtx = fgCv.getContext('2d');
+    fgCtx.imageSmoothingEnabled = false;
+
+    const bgPx = (x,y,c,w=1,h=1) => { ctx.fillStyle=c; ctx.fillRect(Math.round(x),Math.round(y),w,h); };
+    const px = (x,y,c,w=1,h=1) => { fgCtx.fillStyle=c; fgCtx.fillRect(Math.round(x),Math.round(y),w,h); };
+
+    const cfg = POSE_CONFIGS[id] || POSE_CONFIGS.hana;
+    const hairBase = spec.hair;
+    const hairDark = shade(hairBase, -35);
+    const hairDeep = shade(hairBase, -62);
+    const hairLight = shade(hairBase, 34);
+    const skinBase = spec.skin;
+    const skinShade = shade(skinBase, -22);
+    const skinDeep = shade(skinBase, -45);
+    const skinHigh = shade(skinBase, 18);
+
+    // 1. FONDO TEMÁTICO ÚNICO POR PERSONAJE (SIN PARED REPETIDA DE NPC)
+    for(let y=0; y<64; y++){
+      bgPx(0, y, y < 21 ? cfg.bgTop : y < 43 ? cfg.bgMid : cfg.bgBot, 64, 1);
+    }
+    if(id === 'hana'){
+      // Luna creciente esmeralda, árboles silueteados y luciérnagas mágicas
+      bgPx(4, 5, '#a8fff0', 12, 12); bgPx(8, 3, cfg.bgTop, 10, 10);
+      bgPx(0, 32, '#061318', 8, 32); bgPx(56, 26, '#061318', 8, 38);
+      [[10,20],[52,12],[48,24],[8,44],[56,42]].forEach(([fx,fy]) => {
+        bgPx(fx, fy, '#6ef2a0', 3, 3); bgPx(fx+1, fy+1, '#ffffff', 1, 1);
+      });
+    } else if(id === 'ronin'){
+      // Luna de sangre gigante y tallos de bambú cortados
+      bgPx(36, 6, '#a61c3c', 22, 22); bgPx(38, 8, '#ff2a6d', 18, 18);
+      bgPx(6, 0, '#12040a', 3, 64); bgPx(12, 0, '#1a0710', 2, 64);
+      [[16,12],[48,20],[54,36],[10,30]].forEach(([sx,sy]) => bgPx(sx, sy, '#ff9ec7', 3, 2));
+    } else if(id === 'miko'){
+      // Portal Torii sagrado y linternas espirituales
+      bgPx(4, 8, '#a8182e', 56, 4); bgPx(8, 15, '#871123', 48, 3);
+      bgPx(10, 8, '#871123', 4, 56); bgPx(50, 8, '#871123', 4, 56);
+      bgPx(6, 24, '#ffd25f', 5, 7); bgPx(7, 25, '#ffffff', 3, 5);
+    } else if(id === 'mecha'){
+      // Rejilla holográfica sci-fi de hangar táctico
+      for(let gx=0; gx<64; gx+=12) bgPx(gx, 0, '#12345e', 1, 64);
+      for(let gy=8; gy<64; gy+=12) bgPx(0, gy, '#12345e', 64, 1);
+      bgPx(4, 6, '#00ffff', 10, 2); bgPx(4, 10, '#ff8f5f', 6, 2);
+    } else if(id === 'ninja'){
+      // Luna llena tras tejado japonés y ráfagas de viento
+      bgPx(6, 6, '#d9f7ff', 14, 14);
+      for(let i=0; i<16; i++) bgPx(0, 48+i, '#050c10', 24+i*2, 1);
+      bgPx(4, 24, '#6ef2a0', 14, 1); bgPx(42, 12, '#6ef2a0', 16, 1);
+    } else if(id === 'maho'){
+      // Constelaciones astrales y anillos arcanos
+      [[8,8],[18,14],[50,8],[56,18],[10,34]].forEach(([sx,sy]) => bgPx(sx, sy, '#ffd25f', 2, 2));
+      bgPx(8, 9, '#51238c', 11, 1); bgPx(50, 9, '#51238c', 7, 9);
+      bgPx(44, 26, '#431d78', 16, 16);
+    } else if(id === 'oni'){
+      // Grietas de lava volcánica y brasas ardientes
+      for(let i=0; i<6; i++) bgPx(6+i*9, 44 - (i%2)*10, '#ff4d00', 3, 20);
+      [[10,12],[52,14],[48,28],[8,28]].forEach(([ex,ey]) => bgPx(ex, ey, '#ffd25f', 2, 2));
+    } else if(id === 'eleonore'){
+      // Vitral gótico carmesí con luna rosada
+      bgPx(6, 4, '#7a1136', 18, 28); bgPx(8, 6, '#ff5fa2', 14, 24);
+      bgPx(6, 16, '#240510', 18, 2); bgPx(14, 4, '#240510', 2, 28);
+    } else if(id === 'joanna'){
+      // Rayos de luz celestial de catedral
+      for(let i=0; i<24; i+=2){
+        bgPx(2+i, i, 'rgba(255,210,95,0.22)', 10, 4);
+        bgPx(26+i, i, 'rgba(95,201,255,0.20)', 8, 4);
+      }
+    } else if(id === 'raiden'){
+      // Tormenta eléctrica con relámpagos en el cielo
+      for(let i=0; i<12; i++){
+        bgPx(8 + (i%3)*2, i*4, '#b99aff', 3, 4);
+        bgPx(52 - (i%2)*3, i*5, '#ffd25f', 2, 5);
+      }
+    } else if(id === 'kai'){
+      // Eclipse carmesí sombrío y niebla nocturna
+      bgPx(6, 6, '#ff2a4b', 16, 16); bgPx(9, 8, '#0b0d17', 12, 12);
+      bgPx(0, 46, '#1a1f36', 64, 4); bgPx(0, 54, '#121629', 64, 5);
+    } else if(id === 'sol'){
+      // Sol radiante con corona solar tras ella
+      bgPx(18, 4, '#ff7700', 28, 28); bgPx(22, 8, '#ffd25f', 20, 20);
+      for(let a=0; a<8; a++){
+        bgPx(6 + a*7, 2 + (a%2)*4, '#ffae33', 3, 3);
+      }
+    }
+
+    const hx = cfg.hx, hy = cfg.hy, dir = cfg.dir, tilt = cfg.tilt;
+    const tx = cfg.tx, ty = cfg.ty, tw = cfg.tw;
+
+    // 2. CAPA POSTERIOR: ALAS, CAPAS, COLETAS Y CABELLO TRASERO ASIMÉTRICO
+    if(id === 'hana'){
+      // Alas de hada abiertas en ángulo dinámico
+      for(let i=0; i<14; i++){
+        px(2+i, 18+Math.floor(i*0.5), '#7ce8d8', 13, 3);
+        px(4+i, 19+Math.floor(i*0.5), '#b8fff2', 9, 2);
+        px(5+i, 34+Math.floor(i*0.3), '#5fc9ff', 10, 3);
+      }
+      // Dos trenzas/colas largas ondeando hacia la izquierda
+      for(let y=18; y<58; y+=2){
+        const wave = Math.round(Math.sin(y*0.25)*3);
+        px(hx - 6 + wave, y, hairDark, 7, 3);
+        px(hx - 5 + wave, y, hairBase, 5, 2);
+        px(hx + 22 + wave, y+2, hairDark, 6, 3);
+      }
+    } else if(id === 'ronin'){
+      // Coleta alta salvaje ondeando hacia la derecha
+      for(let i=0; i<18; i++){
+        px(hx + 20 + i, hy - 4 + Math.floor(i*0.4), hairDark, 8, 5);
+        px(hx + 21 + i, hy - 3 + Math.floor(i*0.4), hairBase, 6, 3);
+      }
+      px(hx + 18, hy - 2, '#ffd25f', 4, 5);
+    } else if(id === 'miko'){
+      // Cabello largo negro-rojizo con caída hacia la derecha y lazos grandes
+      px(hx - 4, hy - 2, spec.trim, 7, 6);
+      px(hx + 23, hy - 1, spec.trim, 8, 6);
+      for(let y=hy+6; y<60; y++){
+        const shift = Math.floor((y - hy)*0.18);
+        px(hx - 2 + shift, y, hairDeep, 28, 2);
+        px(hx + shift, y, hairDark, 24, 1);
+      }
+    } else if(id === 'mecha'){
+      // Cañón pesado montado sobre el hombro derecho apuntando al frente
+      px(tx + tw - 8, ty - 16, '#1c314d', 16, 12);
+      px(tx + tw - 6, ty - 14, '#4788c7', 12, 8);
+      px(tx + tw + 4, ty - 13, '#00ffff', 4, 6);
+      px(tx + tw + 5, ty - 12, '#ffffff', 2, 4);
+      px(hx - 2, hy + 4, hairDark, 28, 26);
+    } else if(id === 'ninja'){
+      // Bufanda ninja esmeralda ondeando al viento hacia arriba a la izquierda
+      for(let i=0; i<18; i++){
+        px(4 + i, 10 + Math.floor(i*0.9), '#265c42', 9, 4);
+        px(5 + i, 11 + Math.floor(i*0.9), '#45c478', 7, 2);
+      }
+      px(hx - 2, hy + 2, hairDark, 27, 26);
+    } else if(id === 'maho'){
+      // Rulos mágicos lavanda flotando sin gravedad
+      for(let y=hy+6; y<58; y+=3){
+        const wv = Math.round(Math.cos(y*0.3)*4);
+        px(hx - 6 + wv, y, hairDark, 8, 4);
+        px(hx - 5 + wv, y+1, hairBase, 6, 2);
+        px(hx + 20 - wv, y, hairDark, 8, 4);
+        px(hx + 21 - wv, y+1, hairBase, 6, 2);
+      }
+    } else if(id === 'oni'){
+      // Melena blanca salvaje de Oni y mazo Kanabo gigante apoyado en el hombro
+      for(let y=hy+2; y<58; y+=3){
+        px(hx - 6 - (y%2)*2, y, hairDark, 36, 4);
+        px(hx - 4, y, hairBase, 32, 3);
+      }
+      // Kanabo gigante detrás de la cabeza hacia la esquina superior derecha
+      for(let i=0; i<22; i++){
+        px(36 + i, 36 - i*1.4, '#3d4454', 9, 7);
+        px(37 + i, 36 - i*1.4, '#707b94', 6, 5);
+        if(i%4===0) px(35 + i, 34 - i*1.4, '#ffd25f', 3, 3);
+      }
+    } else if(id === 'eleonore'){
+      // Ondas reales rosadas cayendo sobre la espalda
+      for(let y=hy+4; y<60; y+=2){
+        const sw = Math.round(Math.sin(y*0.2)*3);
+        px(hx + 2 + sw, y, hairDark, 26, 3);
+        px(hx + 4 + sw, y, hairBase, 22, 2);
+      }
+    } else if(id === 'joanna'){
+      // Capa azul real ondeando y cabello dorado al viento
+      for(let y=34; y<64; y++){
+        px(tx - 4, y, '#1d3f66', tw + 14, 2);
+        px(tx, y, '#2f6eb5', tw + 8, 1);
+      }
+      for(let y=hy+6; y<54; y+=2){
+        px(hx + 4 + Math.floor((y-hy)*0.25), y, hairDark, 24, 3);
+        px(hx + 6 + Math.floor((y-hy)*0.25), y, hairBase, 20, 2);
+      }
+    } else if(id === 'raiden'){
+      // Puntas de cabello electrizadas hacia los lados
+      for(let i=0; i<12; i++){
+        px(hx - 8 + (i%2)*3, hy + 4 + i*3, hairDark, 38, 3);
+        px(hx - 5, hy + 4 + i*3, hairBase, 32, 2);
+      }
+    } else if(id === 'kai'){
+      // Capa sombría con cuello alto asimétrico
+      px(tx - 4, ty - 6, '#141829', tw + 8, 30);
+      px(hx - 2, hy + 2, hairDark, 28, 24);
+    } else if(id === 'sol'){
+      // Halo solar radiante detrás de la cabeza y melena de fuego ascendente
+      px(hx - 4, hy - 6, '#ffd25f', 32, 3);
+      px(hx - 6, hy - 4, '#ffd25f', 3, 24);
+      px(hx + 27, hy - 4, '#ffd25f', 3, 24);
+      for(let y=hy; y<58; y+=3){
+        const fl = Math.round(Math.sin(y*0.35)*4);
+        px(hx - 5 + fl, y, hairDark, 32, 4);
+        px(hx - 3 + fl, y, hairBase, 28, 2);
+      }
+    }
+
+    // 3. TORSO Y HOMBROS EN ÁNGULO DINÁMICO (NO SIMÉTRICO)
+    const neckX = hx + 9 + (dir > 0 ? -1 : 1);
+    px(neckX, hy + 21, skinDeep, 8, 8);
+    px(neckX + 1, hy + 22, skinShade, 6, 7);
+
+    if(id === 'eleonore'){
+      // Pose de espaldas mirando por encima del hombro izquierdo
+      px(tx, ty, skinShade, tw, 24);
+      px(tx + 2, ty, skinBase, tw - 4, 24);
+      px(tx + 6, ty + 2, skinHigh, 8, 5);
+      // Vestido gótico negro/carmesí con espalda descubierta en diagonal
+      px(tx, ty + 6, spec.sec, tw, 18);
+      px(tx + 3, ty + 8, spec.outfit, tw - 5, 16);
+      px(tx + 2, ty + 6, spec.trim, tw - 2, 2);
+    } else if(id === 'oni'){
+      // Torso musculoso de guerrero Oni con armadura de hombro asimétrica
+      px(tx, ty, skinShade, tw, 26);
+      px(tx + 2, ty, skinBase, tw - 4, 25);
+      px(tx + 6, ty + 4, skinHigh, 9, 6);
+      px(tx + 18, ty + 4, skinHigh, 9, 6);
+      px(tx + 15, ty + 3, skinDeep, 2, 14);
+      // Bandolera de cuero y hombrera con pinchos a la izquierda
+      px(tx - 2, ty - 2, spec.sec, 12, 10);
+      px(tx, ty, spec.outfit, 9, 7);
+      px(tx + 2, ty - 4, '#ffd25f', 3, 3);
+      for(let i=0; i<16; i++) px(tx + 6 + i, ty + i, spec.sec, 6, 4);
+    } else {
+      // Torso en giro 3/4 con un hombro adelantado y otro atrasado
+      const leftLead = dir > 0 ? -2 : 2;
+      const rightLead = dir > 0 ? 2 : -2;
+      px(tx, ty + leftLead, skinShade, Math.floor(tw/2), 24);
+      px(tx + Math.floor(tw/2), ty + rightLead, skinShade, Math.ceil(tw/2), 24);
+      px(tx + 1, ty + leftLead, skinBase, Math.floor(tw/2) - 1, 23);
+      px(tx + Math.floor(tw/2), ty + rightLead, skinBase, Math.ceil(tw/2) - 1, 23);
+
+      // Ropa/Armadura adaptada al giro 3/4 de cada personaje
+      const chestX = tx + (dir > 0 ? 5 : 3);
+      if(id === 'miko'){
+        // Túnica blanca de sacerdotisa con cuello en V rojo cruzado
+        px(tx - 2, ty, '#ffffff', tw + 4, 24);
+        px(tx + 2, ty + 2, '#d92648', tw - 4, 22);
+        for(let i=0; i<12; i++){
+          px(chestX + 2 + i, ty + i, '#ffffff', 4, 3);
+          px(chestX + 16 - i, ty + i, '#ffffff', 4, 3);
+        }
+      } else if(id === 'joanna' || id === 'mecha'){
+        // Armadura de placas / traje mecha con núcleo brillante
+        px(tx - 2, ty, spec.sec, tw + 4, 24);
+        px(tx + 1, ty + 2, spec.outfit, tw - 2, 22);
+        px(tx - 3, ty - 2, spec.trim, 9, 6);
+        px(tx + tw - 6, ty - 2, spec.trim, 9, 6);
+        px(chestX + 6, ty + 6, '#5fc9ff', 6, 6);
+        px(chestX + 7, ty + 7, '#ffffff', 4, 4);
+      } else if(id === 'ronin' || id === 'raiden' || id === 'kai' || id === 'ninja'){
+        // Haori / Traje shinobi cruzado asimétrico
+        px(tx - 1, ty, spec.sec, tw + 2, 24);
+        px(tx + 2, ty + 2, spec.outfit, tw - 4, 22);
+        for(let i=0; i<14; i++){
+          px(chestX + i, ty + i, spec.trim, 3, 2);
+        }
+      } else {
+        // Corsé / Vestido de fantasía en ángulo 3/4 (Hana, Airi, Sol)
+        px(chestX, ty + 5, skinHigh, 6, 4);
+        px(chestX + 8, ty + 5, skinHigh, 6, 4);
+        px(chestX + 6, ty + 6, skinDeep, 2, 7);
+        px(tx + 2, ty + 1, spec.sec, 3, 10);
+        px(tx + tw - 5, ty + 1, spec.sec, 3, 10);
+        px(tx + 1, ty + 10, spec.sec, tw - 2, 14);
+        px(tx + 2, ty + 11, spec.outfit, tw - 4, 13);
+        px(tx + 2, ty + 10, spec.trim, tw - 4, 2);
+      }
+    }
+
+    // 4. ROSTRO EN ÁNGULO 3/4 E INCLINACIÓN DINÁMICA
+    px(hx, hy, skinShade, 24, 19);
+    px(hx + 1, hy, skinBase, 22, 18);
+    px(hx + 3, hy + 18, skinBase, 18, 3);
+    px(hx + 6, hy + 21, skinBase, 12, 2);
+    px(hx + 9 + dir, hy + 23, skinShade, 6, 1);
+
+    // Orejas según el giro de la cabeza
+    if(spec.headType === 'elf_fairy'){
+      px(hx - 8, hy + 10, skinShade, 9, 4);
+      px(hx - 10, hy + 11, '#f5989c', 9, 2);
+      px(hx + 23, hy + 9, skinShade, 9, 4);
+      px(hx + 24, hy + 10, '#f5989c', 9, 2);
+    } else {
+      if(dir <= 0) px(hx + 23, hy + 10, skinShade, 3, 5);
+      if(dir >= 0) px(hx - 2, hy + 10, skinShade, 3, 5);
+    }
+
+    // 5. CABELLO FRONTAL Y PEINADO ÚNICO POR PERSONAJE
+    px(hx - 3, hy - 7, hairDark, 30, 10);
+    px(hx - 1, hy - 8, hairBase, 26, 9);
+    px(hx + 4, hy - 9, hairLight, 16, 2);
+    px(hx + 2, hy - 3, hairLight, 8, 2);
+    px(hx + 14, hy - 4, hairLight, 8, 2);
+
+    if(cfg.hairStyle === 'asym_bangs'){
+      // Kai: Flequillo largo cubriendo parcialmente el ojo izquierdo
+      for(let i=0; i<6; i++){
+        px(hx + i*4, hy - 1, i%2===0 ? hairBase : hairDark, 5, 14 - i*2);
+      }
+    } else if(cfg.hairStyle === 'lightning_spikes' || cfg.hairStyle === 'wild_ponytail' || cfg.hairStyle === 'wild_mane'){
+      // Mechones puntiagudos de acción
+      const spikes = [[0,11],[4,8],[8,12],[13,9],[17,12],[21,8]];
+      spikes.forEach(([sx, sh], i) => {
+        px(hx + sx, hy - 1, i%2===0 ? hairBase : hairDark, 4, sh);
+        px(hx + sx + 1, hy, hairLight, 2, 3);
+      });
+    } else if(cfg.hairStyle === 'hime_cut'){
+      // Yuzuki: Corte Hime tradicional recto con mechones laterales marcados
+      px(hx + 1, hy - 1, hairBase, 22, 8);
+      px(hx + 2, hy + 5, hairDark, 20, 2);
+      px(hx + 4, hy + 1, hairLight, 16, 2);
+    } else {
+      // Mechones dinámicos desplazados hacia la dirección de la mirada
+      const shift = dir > 0 ? 1 : -1;
+      [[0,10],[4,8],[8,10],[12,11],[16,9],[20,10]].forEach(([bx, bh], i) => {
+        px(hx + bx + shift, hy - 1, i%2===0 ? hairBase : hairDark, 4, bh);
+        px(hx + bx + shift + 1, hy, hairLight, 2, 3);
+      });
+    }
+
+    // Mechones laterales enmarcando la cara
+    px(hx - 3, hy + 2, hairDark, 4, 24);
+    px(hx - 2, hy + 2, hairBase, 3, 22);
+    px(hx + 23, hy + 2, hairDark, 4, 24);
+    px(hx + 23, hy + 2, hairBase, 3, 22);
+
+    // Accesorios de cabeza únicos
+    if(spec.headType === 'witchhat'){
+      const hatTilt = id === 'maho' ? -2 : 2;
+      px(hx - 12, hy - 4 + hatTilt, spec.sec, 48, 4);
+      px(hx - 4, hy - 9 + hatTilt, spec.outfit, 32, 6);
+      px(hx + 3, hy - 13 + hatTilt, spec.outfit, 18, 5);
+      px(hx - 2, hy - 5 + hatTilt, spec.trim, 28, 2);
+    } else if(spec.headType === 'horns'){
+      px(hx - 4, hy - 11, '#d9c7b8', 5, 9); px(hx - 3, hy - 13, '#ffffff', 4, 4);
+      px(hx + 23, hy - 11, '#d9c7b8', 5, 9); px(hx + 23, hy - 13, '#ffffff', 4, 4);
+    } else if(spec.headType === 'tiara'){
+      px(hx + 3, hy - 8, '#ffd25f', 18, 4);
+      px(hx + 10, hy - 11, '#ffd25f', 4, 4);
+      px(hx + 11, hy - 9, '#2998ff', 2, 2);
+    }
+
+    // Aplicar contorno negro pixel-art y biselado a la silueta del personaje
+    applyOutlineAndBevel(fgCtx, 0, 0, 64, 64, [15, 10, 24]);
+
+    // 6. OJOS Y EXPRESIONES FACIALES ÚNICAS (DIBUJADAS NÍTIDAS SOBRE LA CARA)
+    const eyeShift = dir > 0 ? 2 : -1;
+    const lx = hx + 2 + eyeShift;
+    const rx = hx + 14 + eyeShift;
+    const ey = hy + 9;
+
+    // Rubor en las mejillas
+    if(id !== 'oni' && id !== 'kai'){
+      px(lx - 1, ey + 5, '#f29b9b', 4, 2);
+      px(rx + 2, ey + 5, '#f29b9b', 4, 2);
+    }
+
+    function drawOpenEye(ex, eyPos, col, lookDir, angry){
+      px(ex, eyPos, '#ffffff', 6, 5);
+      const irisX = ex + (lookDir > 0 ? 2 : 1);
+      px(irisX, eyPos, col, 4, 5);
+      px(irisX + 1, eyPos + 1, shade(col, -45), 2, 3);
+      px(irisX, eyPos + 3, shade(col, 45), 3, 2);
+      px(ex + 1, eyPos, '#ffffff', 2, 2);
+      px(ex - 1, eyPos - 1, '#170e1c', 8, 2);
+      if(angry){
+        px(ex, eyPos - 3, shade(hairBase, -45), 6, 2);
+      } else {
+        px(ex, eyPos - 3, shade(hairBase, -40), 6, 1);
+      }
+    }
+
+    function drawWinkEye(ex, eyPos){
+      px(ex, eyPos + 2, '#170e1c', 6, 2);
+      px(ex + 1, eyPos + 1, '#170e1c', 4, 1);
+      px(ex, eyPos - 2, shade(hairBase, -40), 6, 1);
+    }
+
+    if(cfg.expr === 'wink_left'){
+      drawWinkEye(lx, ey);
+      drawOpenEye(rx, ey, spec.eyeR, dir, false);
+    } else if(cfg.expr === 'wink_happy'){
+      drawOpenEye(lx, ey, spec.eyeL, dir, false);
+      drawWinkEye(rx, ey);
+    } else if(cfg.expr === 'fierce' || cfg.expr === 'storm_glare' || cfg.expr === 'fang_grin' || cfg.expr === 'ninja_glare' || cfg.expr === 'cold_assassin'){
+      drawOpenEye(lx, ey, spec.eyeL, dir, true);
+      drawOpenEye(rx, ey, spec.eyeR, dir, true);
+    } else {
+      drawOpenEye(lx, ey, spec.eyeL, dir, false);
+      drawOpenEye(rx, ey, spec.eyeR, dir, false);
+    }
+
+    // Nariz y Boca según la personalidad de cada héroe
+    const mx = hx + 10 + eyeShift;
+    px(mx + 1, ey + 6, skinDeep, 1, 2);
+    if(cfg.expr === 'fang_grin'){
+      // Sonrisa feroz de Goro con colmillos blancos
+      px(mx - 2, ey + 9, '#1f0d12', 7, 3);
+      px(mx - 1, ey + 9, '#ffffff', 2, 2);
+      px(mx + 3, ey + 9, '#ffffff', 2, 2);
+    } else if(cfg.expr === 'wink_happy' || cfg.expr === 'radiant_smile'){
+      // Sonrisa abierta alegre :D
+      px(mx - 1, ey + 9, '#d94b68', 5, 3);
+      px(mx, ey + 9, '#ffffff', 3, 1);
+    } else if(cfg.expr === 'fierce' || cfg.expr === 'queen_smirk'){
+      // Sonrisa de medio lado confiada (smirk)
+      px(mx - 1, ey + 10, '#c95b6b', 4, 1);
+      px(mx + 3, ey + 9, '#c95b6b', 2, 1);
+    } else {
+      px(mx, ey + 10, '#d96b7a', 3, 1);
+    }
+
+    // Máscara ninja o visor holográfico
+    if(id === 'ninja'){
+      px(hx + 2, hy + 15, '#142e21', 20, 7);
+      px(hx + 3, hy + 16, '#265c42', 18, 2);
+    } else if(id === 'mecha'){
+      px(hx + 1, ey - 1, 'rgba(0, 255, 255, 0.45)', 22, 7);
+      px(hx + 1, ey - 1, '#5fc9ff', 22, 1);
+      px(hx + 1, ey + 5, '#5fc9ff', 22, 1);
+      // Mira telescópica HUD sobre el ojo derecho
+      px(rx + 1, ey - 2, '#ff8f5f', 1, 9);
+      px(rx - 2, ey + 2, '#ff8f5f', 8, 1);
+    }
+
+    // 7. BRAZOS EN PRIMER PLANO, MANOS EXPRESIVAS Y ARMAS/MAGIA (ROMPE LA POSE NPC)
+    const drawHand = (x, y) => {
+      px(x, y, '#170e1c', 7, 7);
+      px(x+1, y+1, skinBase, 5, 5);
+      px(x+1, y+1, skinHigh, 3, 2);
+    };
+
+    if(id === 'hana'){
+      // Mano izquierda tocando su mejilla y mano derecha extendida invocando una mariposa/orbe esmeralda
+      drawHand(hx + 18, hy + 16);
+      drawHand(46, 30);
+      // Mariposa de luz mágica flotando sobre su mano derecha
+      px(45, 20, '#1fa69b', 12, 10);
+      px(46, 21, '#a8fff0', 4, 7);
+      px(52, 21, '#a8fff0', 4, 7);
+      px(49, 22, '#ffffff', 4, 5);
+      px(50, 24, '#e62e4d', 2, 2);
+    } else if(id === 'ronin'){
+      // Katana cruzada en diagonal frente al torso y rostro + mano empuñando la tsuka
+      for(let i=0; i<38; i++){
+        const kx = 8 + i, ky = 48 - Math.floor(i*0.95);
+        px(kx, ky, '#170e1c', 5, 4);
+        px(kx+1, ky+1, i < 10 ? '#2c1e38' : '#d8e6f5', 3, 2);
+        if(i >= 10) px(kx+1, ky, '#ffffff', 2, 1);
+      }
+      // Guardia dorada (Tsuba) y mano delantera
+      px(16, 36, '#ffd25f', 6, 6);
+      drawHand(11, 41);
+      // Destello de corte rosa
+      px(44, 12, '#ff5fa2', 14, 2); px(50, 8, '#ffffff', 2, 10);
+    } else if(id === 'miko'){
+      // Mano en mudra de exorcismo frente al pecho sosteniendo un talismán Ofuda llameante
+      px(8, 20, '#d92648', 11, 18);
+      px(9, 21, '#fff8eb', 9, 16);
+      px(12, 23, '#d92648', 3, 12);
+      px(10, 26, '#ff3b5c', 7, 2);
+      px(10, 31, '#ff3b5c', 7, 2);
+      // Llamas espirituales alrededor del talismán
+      px(6, 17, '#ffd25f', 4, 4); px(17, 18, '#ff8f1f', 4, 5);
+      // Manga blanca amplia y mano con dos dedos levantados
+      px(10, 42, '#ffffff', 14, 14);
+      px(10, 42, '#d92648', 14, 3);
+      drawHand(12, 36);
+      px(14, 32, skinBase, 2, 5);
+    } else if(id === 'mecha'){
+      // Mano con guantelete cibernético ajustando su visor táctico
+      px(6, 26, '#1c314d', 10, 18);
+      px(7, 27, '#4788c7', 8, 14);
+      px(12, 19, '#1c314d', 8, 8);
+      px(13, 20, '#ff8f5f', 6, 5);
+    } else if(id === 'ninja'){
+      // Dos Shurikens de acero cruzados frente a la cara entre sus dedos
+      const drawMiniShuriken = (sx, sy) => {
+        px(sx+4, sy, '#9db4d4', 3, 11);
+        px(sx, sy+4, '#9db4d4', 11, 3);
+        px(sx+5, sy+1, '#ffffff', 1, 9);
+        px(sx+4, sy+4, '#6ef2a0', 3, 3);
+      };
+      drawMiniShuriken(4, 24);
+      drawMiniShuriken(11, 29);
+      drawHand(10, 38);
+    } else if(id === 'maho'){
+      // Mano izquierda sujetando el ala de su sombrero de bruja + mano derecha con Orbe Astral
+      drawHand(5, 11);
+      drawHand(46, 42);
+      px(44, 26, '#51238c', 16, 16);
+      px(46, 28, '#9d4edd', 12, 12);
+      px(48, 30, '#c49bff', 8, 8);
+      px(50, 31, '#ffffff', 4, 4);
+      px(42, 33, '#ffd25f', 20, 2);
+    } else if(id === 'oni'){
+      // Brazo musculoso levantado sosteniendo el mango del Kanabo sobre su hombro
+      px(42, 34, skinShade, 14, 18);
+      px(43, 35, skinBase, 12, 15);
+      px(44, 38, '#3d140a', 10, 4);
+      drawHand(40, 28);
+    } else if(id === 'eleonore'){
+      // Mano con guante largo real junto al mentón haciendo florecer fuego carmesí
+      px(8, 36, '#240510', 9, 22);
+      px(9, 36, '#4a0c24', 7, 20);
+      px(10, 30, '#240510', 7, 7);
+      // Rosa/llama escarlata flotando sobre su mano enguantada
+      px(6, 18, '#b81d58', 12, 12);
+      px(8, 20, '#ff1e56', 8, 8);
+      px(10, 22, '#ffd25f', 4, 4);
+      px(11, 23, '#ffffff', 2, 2);
+    } else if(id === 'joanna'){
+      // Ambas manos con guanteletes de plata empuñando su gran espada Claymore vertical al frente
+      px(11, 6, '#8596b5', 7, 56);
+      px(12, 6, '#e2ecf5', 5, 56);
+      px(14, 8, '#ffffff', 2, 50);
+      // Guardamano cruciforme dorado
+      px(5, 34, '#b8860b', 19, 5);
+      px(6, 35, '#ffd25f', 17, 3);
+      px(12, 34, '#2998ff', 5, 5);
+      // Guanteletes de plata sobre la empuñadura
+      px(10, 40, '#8596b5', 9, 12);
+      px(11, 41, '#ffffff', 7, 4);
+      px(11, 47, '#c9d6ea', 7, 4);
+    } else if(id === 'raiden'){
+      // Desenvaine relámpago con arco voltaico púrpura/dorado cruzando en primer plano
+      px(6, 44, '#1c1136', 28, 6);
+      px(8, 45, '#b99aff', 24, 2);
+      drawHand(26, 40);
+      for(let i=0; i<14; i++){
+        px(6 + i*4, 38 - (i%3)*5, '#b99aff', 5, 3);
+        px(7 + i*4, 39 - (i%3)*5, '#ffd25f', 3, 2);
+        px(8 + i*4, 39 - (i%3)*5, '#ffffff', 2, 1);
+      }
+    } else if(id === 'kai'){
+      // Brazo cruzado sosteniendo un Kunai sombrío en agarre invertido cerca del rostro
+      drawHand(18, 36);
+      px(24, 38, '#d92648', 5, 3);
+      px(29, 37, '#7082bd', 4, 4);
+      for(let i=0; i<14; i++){
+        px(16 - i, 37 - Math.floor(i*0.6), '#4a5578', 4, 4);
+        px(17 - i, 37 - Math.floor(i*0.6), '#cad4ed', 2, 2);
+      }
+      px(4, 26, '#b99aff', 6, 2);
+    } else if(id === 'sol'){
+      // Mano alzada proyectando la Lanza Solar incandescente en diagonal
+      for(let i=0; i<40; i++){
+        const sx = 6 + i*1.3, sy = 50 - i;
+        px(sx, sy, '#e0531f', 5, 5);
+        px(sx+1, sy+1, '#ffd25f', 3, 3);
+        if(i > 26) px(sx, sy, '#ffffff', 4, 4);
+      }
+      drawHand(18, 36);
+    }
+
+    ctx.drawImage(fgCv, 0, 0);
+    PORTRAIT_CANVASES[id] = cv;
+    PORTRAIT_FG_CANVASES[id] = fgCv;
+
+    // Crear versión Silueta Dramática (Estilo Genshin/Honkai) con borde dorado y ojos brillantes
+    const silCv = document.createElement('canvas');
+    silCv.width = 64; silCv.height = 64;
+    const silCtx = silCv.getContext('2d');
+    const fgData = fgCtx.getImageData(0, 0, 64, 64);
+    const sd = fgData.data;
+    const outSil = silCtx.createImageData(64, 64);
+    const od = outSil.data;
+    const isFg = (x, y) => {
+      if(x<0||y<0||x>=64||y>=64) return false;
+      return sd[(y*64+x)*4+3] > 120;
+    };
+    for(let y=0; y<64; y++){
+      for(let x=0; x<64; x++){
+        const i = (y*64+x)*4;
+        if(sd[i+3] > 120){
+          const edge = !isFg(x-1,y) || !isFg(x+1,y) || !isFg(x,y-1) || !isFg(x,y+1);
+          if(edge){
+            od[i] = 255; od[i+1] = 210; od[i+2] = 95; od[i+3] = 255;
+          } else {
+            od[i] = 12; od[i+1] = 9; od[i+2] = 26; od[i+3] = 255;
+          }
+        }
+      }
+    }
+    silCtx.putImageData(outSil, 0, 0);
+    // Superponer ojos brillantes en la silueta
+    silCtx.fillStyle = spec.eyeL;
+    silCtx.fillRect(lx, ey, 5, 4);
+    silCtx.fillStyle = '#ffffff';
+    silCtx.fillRect(lx+1, ey, 2, 2);
+    silCtx.fillStyle = spec.eyeR;
+    silCtx.fillRect(rx, ey, 5, 4);
+    silCtx.fillStyle = '#ffffff';
+    silCtx.fillRect(rx+1, ey, 2, 2);
+    PORTRAIT_SILHOUETTE_CANVASES[id] = silCv;
+
+    IMG[id + '_portrait'] = _img(cv.toDataURL());
+  }
+
+  // ---------- 2. GENERADOR DE MODELOS CHIBI SUPER-DEFORMED PARA EL JUEGO (32x32 -> 64x64, 6 FRAMES) ----------
+  function drawChibiHeroFrame(ctx, ox, f, spec){
+    const px = (x, y, c, w=1, h=1) => { ctx.fillStyle = c; ctx.fillRect(ox + x, y, w, h); };
+    const bounce = (f===1 || f===2 || f===4 || f===5) ? -1 : 0;
+    const walkStep = [0, 1, 1, 0, -1, -1][f];
+    const sway = [0, 0, 1, 1, 0, -1][f];
+
+    if(spec.headType === 'elf_fairy'){
+      const wingFlap = (f%2===0) ? 0 : -1;
+      px(4, 15 + bounce + wingFlap, '#b8fff2', 7, 5);
+      px(21, 15 + bounce + wingFlap, '#b8fff2', 7, 5);
+      px(5, 16 + bounce + wingFlap, '#ffffff', 4, 3);
+      px(22, 16 + bounce + wingFlap, '#ffffff', 4, 3);
+    } else if(spec.cape){
+      px(9 - sway, 18 + bounce, shade(spec.cape, -20), 14, 8);
+      px(10 - sway, 19 + bounce, spec.cape, 12, 6);
+    }
+
+    const lFootY = 26 + (walkStep > 0 ? -1 : 0);
+    const rFootY = 26 + (walkStep < 0 ? -1 : 0);
+    px(12 + walkStep, lFootY, '#1f1726', 3, 3);
+    px(17 - walkStep, rFootY, '#1f1726', 3, 3);
+
+    px(11, 20 + bounce, spec.sec, 10, 6);
+    px(12, 20 + bounce, spec.outfit, 8, 5);
+    px(12, 23 + bounce, spec.trim, 8, 1);
+
+    px(9, 21 + bounce + walkStep, spec.skin, 2, 2);
+    px(21, 21 + bounce - walkStep, spec.skin, 2, 2);
+
+    if(spec.headType !== 'helmet'){
+      px(7 - sway, 6 + bounce, shade(spec.hair, -30), 18, 14);
+    }
+    px(8, 7 + bounce, shade(spec.skin, -15), 16, 13);
+    px(8, 7 + bounce, spec.skin, 16, 12);
+
+    if(spec.headType === 'elf_fairy'){
+      px(4, 13 + bounce, spec.skin, 4, 3);
+      px(3, 14 + bounce, '#ff9aa3', 3, 1);
+      px(24, 13 + bounce, spec.skin, 4, 3);
+      px(26, 14 + bounce, '#ff9aa3', 3, 1);
+    }
+
+    px(9, 16 + bounce, '#ff8da1', 3, 2);
+    px(20, 16 + bounce, '#ff8da1', 3, 2);
+
+    if(spec.headType === 'helmet'){
+      px(7, 5 + bounce, spec.outfit, 18, 14);
+      px(9, 10 + bounce, '#0b1d33', 14, 6);
+      px(10, 11 + bounce, spec.eyeL, 12, 4);
+      px(11, 11 + bounce, '#ffffff', 4, 2);
+    } else {
+      px(10, 12 + bounce, '#170e1c', 4, 4);
+      px(10, 13 + bounce, spec.eyeL, 4, 3);
+      px(10, 12 + bounce, '#ffffff', 2, 2);
+      px(13, 15 + bounce, '#ffffff', 1, 1);
+      px(18, 12 + bounce, '#170e1c', 4, 4);
+      px(18, 13 + bounce, spec.eyeR, 4, 3);
+      px(18, 12 + bounce, '#ffffff', 2, 2);
+      px(21, 15 + bounce, '#ffffff', 1, 1);
+    }
+
+    if(spec.headType !== 'helmet'){
+      px(7, 4 + bounce, spec.hair, 18, 6);
+      px(9, 3 + bounce, shade(spec.hair, 28), 14, 3);
+      px(7, 9 + bounce, spec.hair, 3, 10);
+      px(22, 9 + bounce, shade(spec.hair, -12), 3, 10);
+      px(13, 9 + bounce, spec.hair, 6, 3);
+      px(15, 1 + bounce, spec.hair, 4, 2);
+    }
+
+    if(spec.headType === 'witchhat'){
+      px(4, 5 + bounce, spec.sec, 24, 2);
+      px(8, 3 + bounce, spec.outfit, 16, 2);
+      px(11, 1 + bounce, spec.outfit, 10, 2);
+      px(9, 4 + bounce, spec.trim, 14, 1);
+    } else if(spec.headType === 'horns'){
+      px(7, 1 + bounce, '#ffffff', 3, 4);
+      px(22, 1 + bounce, '#ffffff', 3, 4);
+    } else if(spec.headType === 'ribbon'){
+      px(6, 3 + bounce, spec.trim, 4, 4);
+      px(22, 3 + bounce, spec.trim, 4, 4);
+    } else if(spec.headType === 'hood' || spec.headType === 'masked'){
+      px(9, 16 + bounce, spec.sec, 14, 4);
+    } else if(spec.headType === 'tiara' || spec.headType === 'halo'){
+      px(11, 2 + bounce, spec.trim, 10, 2);
+    }
+
+    const wy = 19 + bounce - walkStep;
+    if(spec.weapon === 'katana' || spec.weapon === 'katana_elec' || spec.weapon === 'claymore'){
+      px(23, wy + 1, '#ffd25f', 4, 2);
+      px(24, wy - 8, '#ffffff', 3, 9);
+    } else if(spec.weapon === 'kanabo' || spec.weapon === 'sunspear'){
+      px(24, wy - 7, spec.trim, 4, 10);
+    } else if(spec.weapon === 'cannon'){
+      px(22, 16 + bounce, '#1c314d', 7, 4);
+      px(28, 17 + bounce, '#00ffff', 2, 2);
+    } else {
+      const orbY = wy - 4 + (f%2===0 ? -1 : 0);
+      px(24, orbY, spec.trim, 4, 4);
+      px(25, orbY + 1, '#ffffff', 2, 2);
+    }
+  }
+
+  function buildAllAssets(){
+    const frames = 6, nativeSize = 32, outSize = 64;
+    Object.keys(HERO_SPECS).forEach(id => {
+      const spec = HERO_SPECS[id];
+      buildDetailedAnimePortrait(id, spec);
+
+      const nativeCanvas = document.createElement('canvas');
+      nativeCanvas.width = nativeSize * frames;
+      nativeCanvas.height = nativeSize;
+      const nctx = nativeCanvas.getContext('2d');
+      nctx.imageSmoothingEnabled = false;
+
+      for(let f=0; f<frames; f++){
+        const ox = f * nativeSize;
+        drawChibiHeroFrame(nctx, ox, f, spec);
+        applyOutlineAndBevel(nctx, ox, 0, nativeSize, nativeSize, [18, 12, 28]);
+        nctx.fillStyle = 'rgba(0,0,0,0.35)';
+        nctx.fillRect(ox + 9, 29, 14, 2);
+      }
+
+      const sheet = document.createElement('canvas');
+      sheet.width = outSize * frames;
+      sheet.height = outSize;
+      const sctx = sheet.getContext('2d');
+      sctx.imageSmoothingEnabled = false;
+      sctx.drawImage(nativeCanvas, 0, 0, nativeCanvas.width, nativeCanvas.height, 0, 0, sheet.width, sheet.height);
+
+      IMG[id + '_idle'] = _img(sheet.toDataURL());
+      SPRITE_DEFS[id + '_idle'] = { img: IMG[id + '_idle'], canvas: sheet, frames: frames, w: outSize, h: outSize };
+    });
+  }
+  buildAllAssets();
+
+  // ---------- DISEÑOS DE ARMAS Y ANIMACIONES (24x24 -> 48x48, 4 FRAMES) ----------
+  const WEAPON_ART_SPECS = {
+    hana:     { title:'Esporas Mágicas',  owner:'Hana (Hada / Elfa)', type:'Flor/Hoja Orbital', color:'#6ef2a0' },
+    ronin:    { title:'Katana Giratoria', owner:'Kaito (Espadachín)', type:'Orbital Cortante', color:'#ff5fa2' },
+    miko:     { title:'Ofuda Explosivo',  owner:'Yuzuki (Sacerdotisa)', type:'Sello Sagrado Nova', color:'#ffd25f' },
+    mecha:    { title:'Cañón de Hombro',  owner:'Ren (Piloto Mecha)', type:'Proyectil de Plasma', color:'#5fc9ff' },
+    ninja:    { title:'Shuriken Dobles',  owner:'Suzu (Ninja Veloz)', type:'Estrella Giratoria', color:'#6ef2a0' },
+    maho:     { title:'Orbe Arcano',      owner:'Airi (Maga Elemental)', type:'Esfera Rúnica Orbital', color:'#c49bff' },
+    oni:      { title:'Mazo Sísmico',     owner:'Goro (Guerrero Oni)', type:'Impacto Kanabo Nova', color:'#ff8f5f' },
+    eleonore: { title:'Estallido Arcano', owner:'Eleonore (Bruja Escarlata)', type:'Sello Carmesí Nova', color:'#ff2a6d' },
+    joanna:   { title:'Estocada Veloz',   owner:'Joanna (Guerrera Jurada)', type:'Onda de Espada', color:'#5fc9ff' },
+    raiden:   { title:'Corte Relámpago',  owner:'Akira (Ronin del Trueno)', type:'Tajo Eléctrico', color:'#b99aff' },
+    kai:      { title:'Kunai Sombrío',    owner:'Kai (Cazador de Sombras)', type:'Daga Perforante', color:'#b9c2e8' },
+    sol:      { title:'Lanza Solar',      owner:'Sol (Maga Solar)', type:'Explosión Solar Nova', color:'#ffbd59' }
+  };
+
+  function drawWeaponFrame(ctx, ox, f, id){
+    const px = (x,y,c,w=1,h=1) => { ctx.fillStyle=c; ctx.fillRect(ox+x, y, w, h); };
+
+    if(id === 'ronin'){
+      if(f%2===0){ px(4, 5, '#ff5fa2', 9, 2); px(3, 7, '#ff9ec7', 4, 2); }
+      else { px(11, 16, '#ff5fa2', 9, 2); px(17, 14, '#ff9ec7', 4, 2); }
+      px(4, 17, '#2c1e38', 4, 3); px(5, 18, '#ff5fa2', 2, 1); px(7, 14, '#ffd25f', 4, 4);
+      for(let i=0; i<11; i++){ px(9+i, 14-i, '#9db4d4', 3, 2); px(10+i, 13-i, '#ffffff', 2, 1); }
+      if(f===1 || f===3){ px(18, 2, '#ffffff', 4, 1); px(19, 1, '#ffffff', 1, 4); }
+    } else if(id === 'miko'){
+      const bob = (f%2===0) ? 0 : -1;
+      px(4, 6+bob, '#ff8f1f', 2, 5); px(18, 8-bob, '#ff8f1f', 2, 5);
+      px(5, 4-bob, '#ffd25f', 2, 3); px(17, 14+bob, '#ffd25f', 2, 3);
+      px(7, 3+bob, '#fff8eb', 10, 18); px(8, 4+bob, '#ffffff', 8, 16);
+      px(8, 4+bob, '#d92648', 8, 1); px(8, 19+bob, '#d92648', 8, 1);
+      px(11, 6+bob, '#d92648', 2, 12); px(9, 8+bob, '#ff3b5c', 6, 2);
+      px(9, 12+bob, '#ff3b5c', 6, 2); px(10, 16+bob, '#ffd25f', 4, 2);
+    } else if(id === 'mecha'){
+      const pulse = (f%2===0) ? 1 : 0;
+      px(2 + (f%2)*2, 9, '#1e4e8c', 7, 6); px(4, 10, '#3b82f6', 6, 4);
+      px(9, 6-pulse, '#2998ff', 11, 12+pulse*2); px(11, 7, '#5fc9ff', 8, 10);
+      px(13, 9, '#ffffff', 5, 6);
+      px(7, 5 + (f*3)%12, '#ff8f5f', 2, 2); px(14, 4 + ((f+2)*3)%14, '#aeeeff', 2, 2);
+    } else if(id === 'ninja'){
+      px(8, 8, '#3b4d5e', 8, 8);
+      if(f%2===0){
+        px(10, 2, '#9db4d4', 4, 6); px(11, 2, '#ffffff', 2, 4);
+        px(10, 16, '#9db4d4', 4, 6); px(2, 10, '#9db4d4', 6, 4);
+        px(16, 10, '#9db4d4', 6, 4); px(16, 11, '#ffffff', 4, 2);
+      } else {
+        px(4, 4, '#9db4d4', 5, 5); px(15, 4, '#ffffff', 5, 5);
+        px(4, 15, '#9db4d4', 5, 5); px(15, 15, '#9db4d4', 5, 5);
+        px(6, 11, '#6ef2a0', 12, 2);
+      }
+      px(10, 10, '#6ef2a0', 4, 4); px(11, 11, '#0d1f18', 2, 2);
+    } else if(id === 'maho'){
+      px(6, 6, '#51238c', 12, 12); px(7, 7, '#7c4dff', 10, 10);
+      px(8, 8, '#c49bff', 8, 8); px(9, 9, '#5fc9ff', 5, 5); px(10, 9, '#ffffff', 2, 2);
+      const pos = [[3,3],[18,3],[18,18],[3,18]];
+      const p1 = pos[f%4], p2 = pos[(f+2)%4];
+      px(p1[0], p1[1], '#ffd25f', 3, 3); px(p1[0]+1, p1[1]+1, '#ffffff', 1, 1);
+      px(p2[0], p2[1], '#ff73fa', 3, 3);
+    } else if(id === 'oni'){
+      const shake = (f%2===0) ? 0 : 1;
+      px(4, 17+shake, '#591b0e', 4, 4);
+      for(let i=0; i<11; i++){ px(6+i, 15-i+shake, '#3d4454', 5, 5); px(7+i, 15-i+shake, '#707b94', 3, 3); }
+      px(7, 11+shake, '#ffd25f', 2, 2); px(11, 7+shake, '#ffd25f', 2, 2);
+      px(15, 4+shake, '#ffd25f', 2, 2); px(13, 14+shake, '#ffd25f', 2, 2); px(17, 10+shake, '#ffd25f', 2, 2);
+      if(f===1 || f===3){ px(3, 6, '#ff8f5f', 3, 2); px(16, 17, '#ff8f5f', 4, 2); }
+    } else if(id === 'eleonore'){
+      const pulse = (f%2===0) ? 0 : 1;
+      px(4, 4, '#6e0d2f', 16, 16); px(6, 6, '#b81d58', 12, 12);
+      px(11, 2+pulse, '#ff5fa2', 2, 20-pulse*2); px(2+pulse, 11, '#ff5fa2', 20-pulse*2, 2);
+      px(8, 8, '#ffd25f', 8, 8); px(10, 10, '#ffffff', 4, 4);
+    } else if(id === 'joanna'){
+      const shift = (f%2===0) ? 0 : 1;
+      px(9, 3, '#2998ff', 6, 18); px(12, 4, '#5fc9ff', 6, 16);
+      px(15, 6, '#ffffff', 5, 12); px(7, 6, '#141a38', 5, 12);
+      px(5+shift, 5, '#ffd25f', 3, 2); px(5+shift, 17, '#ffd25f', 3, 2); px(3, 11+shift, '#ffffff', 4, 2);
+    } else if(id === 'raiden'){
+      px(9, 3, '#5c3d99', 6, 18); px(12, 4, '#b99aff', 6, 16);
+      px(15, 6, '#ffffff', 5, 12); px(7, 6, '#141020', 5, 12);
+      const ry = (f*4)%10;
+      px(4, 4+ry, '#ffd25f', 4, 2); px(6, 6+ry, '#ffffff', 4, 2); px(14, 2+ry, '#ffd25f', 3, 2);
+    } else if(id === 'hana'){
+      px(6, 6, '#1f5936', 12, 12);
+      px(10, 3, '#a8fff0', 4, 18); px(3, 10, '#a8fff0', 18, 4);
+      if(f%2===0) px(5, 5, '#45b864', 14, 14); else px(6, 6, '#e62e4d', 12, 12);
+      px(9, 9, '#ffd25f', 6, 6); px(10, 10, '#ffffff', 3, 3);
+    } else if(id === 'kai'){
+      px(2, 10, '#7082bd', 4, 4); px(3, 11, '#0d101a', 2, 2);
+      px(6, 11, '#d92648', 4, 2);
+      px(10, 7, '#4a5578', 5, 10); px(13, 8, '#8596b5', 5, 8);
+      px(16, 9, '#cad4ed', 4, 6); px(19, 10, '#ffffff', 3, 4);
+      if(f%2===0){ px(4, 6, '#5c3d99', 5, 2); px(4, 16, '#5c3d99', 5, 2); }
+      else { px(7, 5, '#b99aff', 5, 1); px(7, 18, '#b99aff', 5, 1); }
+    } else if(id === 'sol'){
+      const ray = (f%2===0) ? 1 : 0;
+      px(5, 5, '#d94e34', 14, 14);
+      px(11, 2-ray, '#ffd25f', 2, 20+ray*2); px(2-ray, 11, '#ffd25f', 20+ray*2, 2);
+      px(7, 7, '#ff9f1c', 10, 10); px(9, 9, '#ffd25f', 6, 6); px(10, 10, '#ffffff', 4, 4);
+    }
+  }
+
+  function buildAllWeaponSprites(){
+    const frames = 4, nativeSize = 24, outSize = 48;
+    Object.keys(WEAPON_ART_SPECS).forEach(id => {
+      const nativeCanvas = document.createElement('canvas');
+      nativeCanvas.width = nativeSize * frames;
+      nativeCanvas.height = nativeSize;
+      const nctx = nativeCanvas.getContext('2d');
+      nctx.imageSmoothingEnabled = false;
+
+      for(let f=0; f<frames; f++){
+        const ox = f * nativeSize;
+        drawWeaponFrame(nctx, ox, f, id);
+        applyOutlineAndBevel(nctx, ox, 0, nativeSize, nativeSize, [15, 10, 25]);
+      }
+
+      const sheet = document.createElement('canvas');
+      sheet.width = outSize * frames;
+      sheet.height = outSize;
+      const sctx = sheet.getContext('2d');
+      sctx.imageSmoothingEnabled = false;
+      sctx.drawImage(nativeCanvas, 0, 0, nativeCanvas.width, nativeCanvas.height, 0, 0, sheet.width, sheet.height);
+
+      const iconCv = document.createElement('canvas');
+      iconCv.width = outSize; iconCv.height = outSize;
+      const ictx = iconCv.getContext('2d');
+      ictx.imageSmoothingEnabled = false;
+      ictx.drawImage(sheet, 0, 0, outSize, outSize, 0, 0, outSize, outSize);
+
+      WEAPON_DEFS[id] = {
+        canvas: sheet,
+        sheetUrl: sheet.toDataURL(),
+        iconUrl: iconCv.toDataURL(),
+        frames: frames,
+        w: outSize,
+        h: outSize,
+        meta: WEAPON_ART_SPECS[id]
+      };
+    });
+  }
+  buildAllWeaponSprites();
+
+  function buildSlashArcAsset(){
+    const frames = 4, nativeSize = 24, outSize = 48;
+    const nativeCanvas = document.createElement('canvas');
+    nativeCanvas.width = nativeSize * frames;
+    nativeCanvas.height = nativeSize;
+    const ctx = nativeCanvas.getContext('2d');
+    for(let f=0; f<frames; f++){
+      const ox = f * nativeSize;
+      const px = (x,y,c,w=1,h=1) => { ctx.fillStyle=c; ctx.fillRect(ox+x, y, w, h); };
+      if(f===0){ px(10, 3, '#ffffff', 5, 6); px(13, 6, '#5fc9ff', 5, 7); }
+      else if(f===1){ px(9, 2, '#5fc9ff', 6, 20); px(13, 4, '#ffffff', 6, 16); }
+      else if(f===2){ px(12, 3, '#ff5fa2', 6, 18); px(15, 6, '#ffd25f', 5, 12); }
+      else { px(15, 5, '#ffd25f', 3, 4); px(16, 14, '#ff5fa2', 3, 4); }
+      applyOutlineAndBevel(ctx, ox, 0, nativeSize, nativeSize, [16, 10, 28]);
+    }
+    const sheet = document.createElement('canvas');
+    sheet.width = outSize * frames; sheet.height = outSize;
+    const sctx = sheet.getContext('2d');
+    sctx.imageSmoothingEnabled = false;
+    sctx.drawImage(nativeCanvas, 0, 0, nativeCanvas.width, nativeCanvas.height, 0, 0, sheet.width, sheet.height);
+    SPRITE_DEFS.slash_arc = { canvas: sheet, frames: 4, w: outSize, h: outSize };
+  }
+  buildSlashArcAsset();
+
+  // ---------- GENERADOR DE ENEMIGOS Y JEFES EN 32x32 DETALLADO ----------
+  function buildDetailedEnemies(){
+    const frames = 4, nativeSize = 32, outSize = 64;
+    const types = ['fire', 'ghost', 'devil', 'zombie', 'knight'];
+
+    types.forEach(type => {
+      const nativeCanvas = document.createElement('canvas');
+      nativeCanvas.width = nativeSize * frames;
+      nativeCanvas.height = nativeSize;
+      const ctx = nativeCanvas.getContext('2d');
+
+      for(let f=0; f<frames; f++){
+        const ox = f * nativeSize;
+        const bob = (f%2===1) ? -1 : 0;
+        const px = (x,y,c,w=1,h=1) => { ctx.fillStyle=c; ctx.fillRect(ox+x, y, w, h); };
+
+        if(type === 'fire'){
+          const flick = (f%2===0) ? 1 : -1;
+          px(10, 8+bob, '#d92100', 12, 16);
+          px(8, 11+bob, '#ff4d00', 16, 12);
+          px(11+flick, 5+bob, '#ff7700', 4, 6);
+          px(17-flick, 6+bob, '#ff9900', 4, 5);
+          px(10, 12+bob, '#ffae00', 12, 10);
+          px(12, 14+bob, '#fff380', 8, 6);
+          px(11, 14+bob, '#2b0500', 3, 2);
+          px(18, 14+bob, '#2b0500', 3, 2);
+          px(12, 14+bob, '#ffffff', 1, 1);
+          px(19, 14+bob, '#ffffff', 1, 1);
+        } else if(type === 'ghost'){
+          px(10, 6+bob, '#4b1d7a', 12, 18);
+          px(8, 9+bob, '#6829a8', 16, 14);
+          px(11, 7+bob, '#893dd9', 10, 5);
+          px(11, 10+bob, '#12051f', 10, 7);
+          px(13, 13+bob, '#ff5fa2', 2, 2);
+          px(18, 13+bob, '#ff5fa2', 2, 2);
+          px(9, 23+bob, '#4b1d7a', 3, 3 + (f%2));
+          px(14, 23+bob, '#4b1d7a', 4, 4 - (f%2));
+          px(20, 23+bob, '#4b1d7a', 3, 3 + (f%2));
+        } else if(type === 'devil'){
+          const wingY = (f%2===0) ? 0 : -2;
+          px(3, 8+wingY, '#590914', 7, 10);
+          px(22, 8+wingY, '#590914', 7, 10);
+          px(4, 9+wingY, '#8c1122', 5, 6);
+          px(23, 9+wingY, '#8c1122', 5, 6);
+          px(8, 3+bob, '#d9c7b8', 3, 5);
+          px(21, 3+bob, '#d9c7b8', 3, 5);
+          px(7, 2+bob, '#ffffff', 2, 2);
+          px(23, 2+bob, '#ffffff', 2, 2);
+          px(10, 6+bob, '#b81d25', 12, 16);
+          px(11, 7+bob, '#e62e38', 10, 12);
+          px(12, 10+bob, '#ffd25f', 3, 2);
+          px(17, 10+bob, '#ffd25f', 3, 2);
+          px(11, 21+bob, '#381519', 10, 5);
+          px(11, 25, '#8c1122', 4, 4);
+          px(17, 25, '#8c1122', 4, 4);
+        } else if(type === 'zombie'){
+          px(11, 6+bob, '#4f8f54', 10, 9);
+          px(12, 7+bob, '#76b87b', 8, 7);
+          px(11, 6+bob, '#27592b', 6, 3);
+          px(12, 10+bob, '#ff2a4b', 2, 2);
+          px(18, 10+bob, '#ff2a4b', 2, 2);
+          px(13, 13+bob, '#1f0d12', 5, 2);
+          px(10, 15+bob, '#524132', 11, 8);
+          px(12, 16+bob, '#6e5844', 7, 6);
+          px(19, 15+bob, '#76b87b', 7, 3);
+          px(11, 23, '#332920', 4, 5 + (f%2));
+          px(16, 23, '#332920', 4, 5 - (f%2));
+        } else if(type === 'knight'){
+          px(13, 2+bob, '#b81d4e', 6, 4);
+          px(10, 6+bob, '#52607a', 12, 9);
+          px(11, 7+bob, '#8596b5', 10, 4);
+          px(12, 11+bob, '#10141f', 8, 3);
+          px(13, 12+bob, '#ff3355', 2, 1);
+          px(17, 12+bob, '#ff3355', 2, 1);
+          px(8, 15+bob, '#3d485e', 16, 9);
+          px(10, 16+bob, '#687896', 12, 7);
+          px(6, 14+bob, '#283040', 5, 11);
+          px(7, 15+bob, '#8596b5', 3, 9);
+          px(24, 7+bob, '#a3b8d9', 2, 14);
+          px(11, 24, '#283040', 4, 5);
+          px(17, 24, '#283040', 4, 5);
+        }
+
+        applyOutlineAndBevel(ctx, ox, 0, nativeSize, nativeSize, [14, 8, 22]);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(ox + 8, 29, 16, 2);
+      }
+
+      const sheet = document.createElement('canvas');
+      sheet.width = outSize * frames;
+      sheet.height = outSize;
+      const sctx = sheet.getContext('2d');
+      sctx.imageSmoothingEnabled = false;
+      sctx.drawImage(nativeCanvas, 0, 0, nativeCanvas.width, nativeCanvas.height, 0, 0, sheet.width, sheet.height);
+
+      IMG['enemy_' + type] = _img(sheet.toDataURL());
+      SPRITE_DEFS[type] = { img: IMG['enemy_' + type], canvas: sheet, frames: frames, w: outSize, h: outSize };
+    });
+  }
+  buildDetailedEnemies();
+
+  function buildEnvironmentAndItems(){
+    const frames = 4, size = 48;
+    const sheet = document.createElement('canvas');
+    sheet.width = size * frames; sheet.height = size;
+    const c = sheet.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    for(let f=0; f<frames; f++){
+      const cx = f*size + size/2, cy = size/2;
+      const r = (f+1)*4;
+      c.fillStyle = f<2 ? '#ffffff' : '#ffd25f';
+      for(let a=0; a<8; a++){
+        const ang = a * Math.PI / 4;
+        const px = Math.round((cx + Math.cos(ang)*r)/3)*3;
+        const py = Math.round((cy + Math.sin(ang)*r)/3)*3;
+        c.fillRect(px-3, py-3, 6, 6);
+      }
+    }
+    IMG.hitfx = _img(sheet.toDataURL());
+    SPRITE_DEFS.hitfx = { img: IMG.hitfx, canvas: sheet, frames: 4, w: 48, h: 48 };
+
+    const treeCv = document.createElement('canvas');
+    treeCv.width = 32; treeCv.height = 40;
+    const tctx = treeCv.getContext('2d');
+    const tpx = (x,y,col,w=1,h=1)=>{ tctx.fillStyle=col; tctx.fillRect(x,y,w,h); };
+    tpx(6, 35, 'rgba(0,0,0,0.35)', 20, 4);
+    tpx(12, 22, '#4a301d', 8, 15);
+    tpx(13, 22, '#6e472b', 5, 14);
+    tpx(14, 24, '#875937', 2, 11);
+    tpx(10, 34, '#4a301d', 12, 3);
+    tpx(5, 10, '#143d25', 22, 15);
+    tpx(7, 6, '#1f5936', 18, 16);
+    tpx(9, 4, '#2d7a49', 14, 13);
+    tpx(11, 3, '#46a362', 10, 8);
+    tpx(13, 4, '#6ad182', 6, 4);
+    for(let i=0;i<14;i++){
+      tpx(8 + (i*5)%16, 6 + (i*3)%14, i%2===0 ? '#6ad182' : '#143d25', 2, 2);
+    }
+    applyOutlineAndBevel(tctx, 0, 0, 32, 37, [12, 24, 16]);
+    ENV_SPRITES.tree = treeCv;
+
+    const bushCv = document.createElement('canvas');
+    bushCv.width = 16; bushCv.height = 16;
+    const bctx = bushCv.getContext('2d');
+    const bpx = (x,y,col,w=1,h=1)=>{ bctx.fillStyle=col; bctx.fillRect(x,y,w,h); };
+    bpx(2, 6, '#1f5936', 12, 8);
+    bpx(3, 4, '#2d7a49', 10, 8);
+    bpx(5, 3, '#46a362', 6, 5);
+    bpx(5, 7, '#ff5fa2', 2, 2);
+    bpx(10, 6, '#ffd25f', 2, 2);
+    applyOutlineAndBevel(bctx, 0, 0, 16, 15, [12, 24, 16]);
+    ENV_SPRITES.bush = bushCv;
+
+    const ruinCv = document.createElement('canvas');
+    ruinCv.width = 20; ruinCv.height = 24;
+    const rctx = ruinCv.getContext('2d');
+    const rpx = (x,y,col,w=1,h=1)=>{ rctx.fillStyle=col; rctx.fillRect(x,y,w,h); };
+    rpx(3, 2, '#5c616e', 14, 20);
+    rpx(4, 3, '#848b9c', 11, 18);
+    rpx(2, 2, '#9fa6b8', 16, 4);
+    rpx(2, 19, '#6d7382', 16, 3);
+    rpx(5, 8, '#3d414a', 10, 1);
+    rpx(4, 3, '#39854c', 5, 3);
+    rpx(11, 16, '#39854c', 4, 4);
+    applyOutlineAndBevel(rctx, 0, 0, 20, 23, [20, 22, 28]);
+    ENV_SPRITES.ruin = ruinCv;
+  }
+  buildEnvironmentAndItems();
+
+  // ---------- CATÁLOGO DE HÉROES ----------
+  const CHARACTERS = [
+    {id:'hana', name:'Hana', role:'Hada / Elfa Bosque', rarity:'SSR', color:'#a8fff0', hp:125, speed:2.3, sprite:'hana_idle',
+      lore:'Hada élfica nocturna con heterocromía (ojo esmeralda y carmesí). En su icono luce su retrato detallado y al jugar se transforma en Chibi.',
+      weapon:{name:'Esporas mágicas', type:'orbit', dmg:15, cd:800, range:90, count:2}},
+    {id:'ronin', name:'Kaito', role:'Espadachín', rarity:'R', color:'#ff5fa2', hp:110, speed:2.4, sprite:'ronin_idle',
+      lore:'Maestro del estilo iaido. Sus katanas espirituales orbitan cortando cualquier amenaza cercana.',
+      weapon:{name:'Katana giratoria', type:'orbit', dmg:14, cd:900, range:75, count:1}},
+    {id:'miko', name:'Yuzuki', role:'Sacerdotisa', rarity:'R', color:'#ffd25f', hp:90, speed:2.2, sprite:'miko_idle',
+      lore:'Custodia del santuario. Detona sellos ofuda sagrados que purifican en área a las hordas.',
+      weapon:{name:'Ofuda explosivo', type:'nova', dmg:18, cd:1400, range:120, count:1}},
+    {id:'ninja', name:'Suzu', role:'Ninja veloz', rarity:'R', color:'#6ef2a0', hp:85, speed:3.0, sprite:'ninja_idle',
+      lore:'La más veloz del clan del viento. Lanza ráfagas dobles de shurikens giratorios.',
+      weapon:{name:'Shuriken dobles', type:'bolt', dmg:9, cd:450, range:220, count:2}},
+    {id:'mecha', name:'Ren', role:'Piloto mecha', rarity:'SR', color:'#5fc9ff', hp:130, speed:2.0, sprite:'mecha_idle',
+      lore:'Unidad blindada táctica equipada con un cañón de hombro de plasma de largo alcance.',
+      weapon:{name:'Cañón de hombro', type:'bolt', dmg:12, cd:600, range:260, count:1}},
+    {id:'maho', name:'Airi', role:'Maga elemental', rarity:'SR', color:'#c49bff', hp:95, speed:2.1, sprite:'maho_idle',
+      lore:'Erudita astral que mantiene dos esferas rúnicas orbitando a su alrededor en todo momento.',
+      weapon:{name:'Orbe arcano', type:'orbit', dmg:10, cd:800, range:90, count:2}},
+    {id:'oni', name:'Goro', role:'Guerrero oni', rarity:'SR', color:'#ff8f5f', hp:150, speed:1.9, sprite:'oni_idle',
+      lore:'Coloso de sangre demoníaca. Su mazo kanabo desata terremotos devastadores.',
+      weapon:{name:'Mazo sísmico', type:'nova', dmg:24, cd:1700, range:105, count:1}},
+    {id:'kai', name:'Kai', role:'Cazador de sombras', rarity:'SR', color:'#b9c2e8', hp:95, speed:2.8, sprite:'kai_idle',
+      lore:'Asesino silencioso que arroja pares de kunais imbuidos en energía sombría.',
+      weapon:{name:'Kunai sombrío', type:'bolt', dmg:11, cd:420, range:230, count:2}},
+    {id:'eleonore', name:'Eleonore', role:'Bruja escarlata', rarity:'SSR', color:'#ff5fa2', hp:105, speed:2.2, sprite:'eleonore_idle',
+      lore:'[SSR Legendaria] Hechicera carmesí capaz de invocar círculos arcanos que incineran todo a su paso.',
+      weapon:{name:'Estallido arcano', type:'nova', dmg:24, cd:1400, range:125, count:1}},
+    {id:'joanna', name:'Joanna', role:'Guerrera jurada', rarity:'SSR', color:'#5fc9ff', hp:135, speed:2.4, sprite:'joanna_idle',
+      lore:'[SSR Legendaria] Paladina real cuya espada sagrada proyecta ondas crecientes de luz cortante.',
+      weapon:{name:'Estocada veloz', type:'bolt', dmg:16, cd:500, range:250, count:1}},
+    {id:'raiden', name:'Akira', role:'Ronin del trueno', rarity:'SSR', color:'#b99aff', hp:115, speed:2.8, sprite:'raiden_idle',
+      lore:'[SSR Legendario] Espadachín relámpago cuyos tajos eléctricos viajan a gran velocidad.',
+      weapon:{name:'Corte relámpago', type:'bolt', dmg:18, cd:620, range:260, count:1}},
+    {id:'sol', name:'Sol', role:'Maga solar', rarity:'SSR', color:'#ffbd59', hp:120, speed:2.3, sprite:'sol_idle',
+      lore:'[SSR Legendaria] Portadora de la lanza del alba. Desata novas solares de gran radio de impacto.',
+      weapon:{name:'Lanza solar', type:'nova', dmg:26, cd:1500, range:145, count:1}},
+  ];
+
+  // ---------- DATOS DE GUARDADO DEL GACHA ----------
+  const SAVE_KEY = 'anime_survivor_gacha_v2';
+  let gachaData = {
+    crystals: 1200,
+    pity: 0,
+    unlocked: { hana: 1, ronin: 1, miko: 1, ninja: 1 }
+  };
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && typeof parsed.crystals === 'number'){
+        gachaData = parsed;
+        if(!gachaData.unlocked.hana) gachaData.unlocked.hana = 1;
+      }
+    }
+  }catch(e){}
+
+  function saveGachaData(){
+    try{ localStorage.setItem(SAVE_KEY, JSON.stringify(gachaData)); }catch(e){}
+    updateGachaHeaderUI();
+  }
+
+  function getHeroStars(id){
+    return gachaData.unlocked[id] || 0;
+  }
+  function getStarMult(id){
+    const s = getHeroStars(id);
+    return s <= 1 ? 1 : 1 + (s - 1) * 0.15;
+  }
+
+  function updateGachaHeaderUI(){
+    document.getElementById('crystalCountText').textContent = gachaData.crystals;
+    document.getElementById('pityText').textContent = `${gachaData.pity} / 20`;
+    document.getElementById('pityFill').style.width = Math.min(100, (gachaData.pity/20)*100) + '%';
+    const ownedCount = Object.keys(gachaData.unlocked).length;
+    document.getElementById('collectionCountText').textContent = `${ownedCount}/12`;
+  }
+
+  const BIOMES = {
+    forest: { label:'🌲 BOSQUE ANTIGUO', bg:'#1f422d', t1:'#224931', t2:'#265237', t3:'#2a593c', t4:'#2e6142',acc:'#ffd25f' },
+    sakura: { label:'🌸 SANTUARIO CEREZOS', bg:'#2d2338', t1:'#332740', t2:'#3b2d4a', t3:'#423254', t4:'#4a385e', acc:'#ff8fbd' },
+    abyss:  { label:'🌙 CALLEJÓN NOCTURNO', bg:'#141022', t1:'#1b152e', t2:'#211a38', t3:'#271f42', t4:'#2e244d', acc:'#a8fff0' }
+  };
+
+  const UPGRADE_POOL = [
+    {id:'dmg', icon:'💥', name:'Daño +25%', desc:'Tus ataques pegan más fuerte', apply:p=>p.dmgMult*=1.25},
+    {id:'cd', icon:'⚡', name:'Cadencia +20%', desc:'Atacas con más frecuencia', apply:p=>p.cdMult*=0.8},
+    {id:'range', icon:'🎯', name:'Alcance +20%', desc:'Tu arma llega más lejos', apply:p=>p.rangeMult*=1.2},
+    {id:'speed', icon:'👟', name:'Velocidad +15%', desc:'Te mueves más rápido', apply:p=>p.speed*=1.15},
+    {id:'maxhp', icon:'❤️', name:'Vida máx +25', desc:'Más resistencia y curación', apply:p=>{p.maxHp+=25;p.hp=Math.min(p.maxHp, p.hp+25);}},
+    {id:'regen', icon:'✨', name:'Regeneración', desc:'Curas 1.5 PV/seg extra', apply:p=>p.regen+=1.5},
+    {id:'count', icon:'🌀', name:'+1 proyectil/orbe', desc:'Más poder en cada ataque', apply:p=>p.countBonus+=1},
+    {id:'magnet', icon:'🧲', name:'Imán de XP', desc:'Recoges gemas desde más lejos', apply:p=>p.magnet*=1.5},
+  ];
+
+  // ---------- ESTADO DEL MENÚ INTERACTIVO ----------
+  let selectedChar = CHARACTERS[0];
+  let currentBiome = 'forest';
+  let currentFilter = 'all';
+  let hoveredCharId = null;
+  let game = null;
+  let keys = {};
+  let joyVec = {x:0,y:0};
+
+  const screenSelect = document.getElementById('screen-select');
+  const screenGacha = document.getElementById('screen-gacha');
+  const screenGallery = document.getElementById('screen-gallery');
+  const screenGame = document.getElementById('screen-game');
+  const charGrid = document.getElementById('charGrid');
+  const btnStart = document.getElementById('btnStart');
+
+  const customInput = document.getElementById('customPortraitInput');
+  document.getElementById('btnUploadCustom').addEventListener('click', ()=>{
+    customInput.click();
+  });
+  customInput.addEventListener('change', e=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file || !selectedChar) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        const cv = PORTRAIT_CANVASES[selectedChar.id];
+        const c = cv.getContext('2d');
+        c.imageSmoothingEnabled = false;
+        c.clearRect(0, 0, 64, 64);
+        const side = Math.min(tempImg.width, tempImg.height);
+        const sx = (tempImg.width - side) / 2;
+        const sy = (tempImg.height - side) * 0.15;
+        c.drawImage(tempImg, sx, Math.max(0, sy), side, side, 0, 0, 64, 64);
+        IMG[selectedChar.id + '_portrait'] = _img(cv.toDataURL());
+        updateShowcaseUI(selectedChar);
+        renderCharCards();
+        playSfx('gacha_ssr');
+      };
+      tempImg.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function updateShowcaseUI(c){
+    const stars = getHeroStars(c.id);
+    const mult = getStarMult(c.id);
+    const effHp = Math.round(c.hp * mult);
+    const effDmg = Math.round(c.weapon.dmg * mult);
+
+    document.getElementById('stBigPortrait').src = IMG[c.id + '_portrait'].src;
+    document.getElementById('stName').textContent = `[${c.rarity}] ${c.name}`;
+    document.getElementById('stName').style.color = c.color;
+    document.getElementById('stStars').textContent = stars > 0 ? '★'.repeat(stars) + ` (+${Math.round((mult-1)*100)}%)` : '🔒 BLOQUEADO';
+    document.getElementById('stRole').textContent = c.role;
+    document.getElementById('stLore').textContent = c.lore;
+
+    document.getElementById('valHp').textContent = effHp;
+    document.getElementById('valSpd').textContent = c.speed.toFixed(1);
+    document.getElementById('valDmg').textContent = effDmg;
+    document.getElementById('valCd').textContent = (c.weapon.cd/1000).toFixed(2)+'s';
+    document.getElementById('valRng').textContent = c.weapon.range;
+
+    document.getElementById('barHp').style.width = Math.min(100, (effHp/200)*100) + '%';
+    document.getElementById('barSpd').style.width = Math.min(100, (c.speed/3.0)*100) + '%';
+    document.getElementById('barDmg').style.width = Math.min(100, (effDmg/35)*100) + '%';
+    document.getElementById('barCd').style.width = Math.min(100, ((2000-c.weapon.cd)/1600)*100) + '%';
+    document.getElementById('barRng').style.width = Math.min(100, (c.weapon.range/260)*100) + '%';
+
+    const wd = WEAPON_DEFS[c.id];
+    document.getElementById('stWepIcon').src = wd.iconUrl;
+    document.getElementById('stWepName').textContent = c.weapon.name;
+    const tName = c.weapon.type==='orbit'?'🌀 Orbital':c.weapon.type==='bolt'?'🎯 Proyectil':'💥 Nova de Área';
+    const poseTxt = (POSE_CONFIGS[c.id] && POSE_CONFIGS[c.id].poseTitle) ? POSE_CONFIGS[c.id].poseTitle : 'Pose Dinámica';
+    document.getElementById('stWepType').textContent = `${tName} · Retrato: ${poseTxt} · Partida: Chibi SD`;
+
+    btnStart.disabled = (stars === 0);
+    btnStart.textContent = stars > 0 ? '▶️ ¡Jugar en Modo Chibi!' : '🔒 Desbloquea a este Héroe en el Altar Gacha';
+  }
+
+  const cardCanvases = [];
+  function renderCharCards(){
+    charGrid.innerHTML = '';
+    cardCanvases.length = 0;
+    CHARACTERS.filter(c => currentFilter==='all' || c.weapon.type===currentFilter).forEach(c=>{
+      const stars = getHeroStars(c.id);
+      const isUnlocked = stars > 0;
+      const el = document.createElement('div');
+      el.className = 'char' + (selectedChar && selectedChar.id===c.id ? ' selected' : '') + (!isUnlocked ? ' locked' : '');
+      el.dataset.id = c.id;
+      const wDef = WEAPON_DEFS[c.id];
+      el.innerHTML = `
+        <span class="rarity-badge rarity-${c.rarity}">${c.rarity}</span>
+        <img class="wep-mini" src="${wDef.iconUrl}" title="${c.weapon.name}" alt="${c.weapon.name}">
+        <div class="portrait-frame">
+          <canvas class="portrait-cv" width="64" height="64"></canvas>
+          <canvas class="chibi-badge" width="32" height="32" title="Modelo Chibi en partida"></canvas>
+        </div>
+        <div class="star-row">${isUnlocked ? '★'.repeat(stars) : '☆☆☆☆☆'}</div>
+        <div class="name">${c.name}</div>
+        <div class="role">${c.role}</div>
+        <div class="wname">${c.weapon.name}</div>
+      `;
+      const pCv = el.querySelector('.portrait-cv');
+      const chCv = el.querySelector('.chibi-badge');
+      cardCanvases.push({
+        id:c.id, color:c.color,
+        pCtx: pCv.getContext('2d'),
+        chCtx: chCv.getContext('2d')
+      });
+
+      el.addEventListener('mouseenter', ()=>{
+        hoveredCharId = c.id;
+        playSfx('hover');
+      });
+      el.addEventListener('mouseleave', ()=>{
+        if(hoveredCharId === c.id) hoveredCharId = null;
+      });
+      el.addEventListener('click', ()=>{
+        selectCharacter(c);
+        playSfx('select');
+      });
+      charGrid.appendChild(el);
+    });
+  }
+
+  function selectCharacter(c){
+    selectedChar = c;
+    document.querySelectorAll('.char').forEach(x=>{
+      x.classList.toggle('selected', x.dataset.id === c.id);
+    });
+    updateShowcaseUI(c);
+    dojoState.heroDash = 0.2;
+    dojoState.cd = 0.05;
+  }
+
+  document.querySelectorAll('#filterTabs .tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#filterTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      playSfx('select');
+      renderCharCards();
+    });
+  });
+
+  document.querySelectorAll('#biomeTabs .tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#biomeTabs .tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      currentBiome = btn.dataset.biome;
+      document.getElementById('mapLabel').textContent = BIOMES[currentBiome].label;
+      playSfx('select');
+    });
+  });
+
+  document.getElementById('btnRandomHero').addEventListener('click', ()=>{
+    const ownedPool = CHARACTERS.filter(c => getHeroStars(c.id) > 0);
+    let spins = 0;
+    const maxSpins = 12;
+    const iv = setInterval(()=>{
+      const rnd = ownedPool[Math.floor(Math.random()*ownedPool.length)];
+      selectCharacter(rnd);
+      playSfx('hover');
+      spins++;
+      if(spins >= maxSpins){
+        clearInterval(iv);
+        playSfx('start');
+      }
+    }, 70);
+  });
+
+  // ---------- SISTEMA DE ALTAR GACHA ----------
+  const gachaCanvas = document.getElementById('gachaCanvas');
+  const gctx = gachaCanvas.getContext('2d');
+  const gachaAnim = {
+    state: 'idle',
+    timer: 0,
+    maxRarity: 'R',
+    pendingResults: []
+  };
+
+  function rollSingleHero(forceSrOrSsr){
+    gachaData.pity++;
+    let chosenRarity = 'R';
+    if(gachaData.pity >= 20){
+      chosenRarity = 'SSR';
+      gachaData.pity = 0;
+    } else {
+      const r = Math.random();
+      if(r < 0.10){
+        chosenRarity = 'SSR';
+        gachaData.pity = 0;
+      } else if(r < 0.40 || forceSrOrSsr){
+        chosenRarity = 'SR';
+      }
+    }
+    const pool = CHARACTERS.filter(c => c.rarity === chosenRarity);
+    const hero = pool[Math.floor(Math.random() * pool.length)];
+    const prevStars = getHeroStars(hero.id);
+    let status = 'NEW';
+    if(prevStars === 0){
+      gachaData.unlocked[hero.id] = 1;
+      status = '¡NUEVO!';
+    } else if(prevStars < 5){
+      gachaData.unlocked[hero.id] = prevStars + 1;
+      status = `ASCENSIÓN ★${prevStars + 1}`;
+    } else {
+      gachaData.crystals += 40;
+      status = '★5 MÁX (+40 💎)';
+    }
+    return { hero, status, stars: gachaData.unlocked[hero.id] };
+  }
+
+  function performGachaPull(count, cost){
+    if(gachaAnim.state !== 'idle') return;
+    if(gachaData.crystals < cost){
+      document.getElementById('gachaResults').innerHTML = '<div class="card" style="grid-column:1/-1;text-align:center;color:var(--accent3);border-color:var(--danger);">⚠️ No tienes suficientes Cristales Astrales 💎. ¡Pulsa el botón <b>🎁 Bono (+500 💎)</b> arriba a la derecha o derrota enemigos en partida!</div>';
+      return;
+    }
+    gachaData.crystals -= cost;
+    document.getElementById('gachaResults').innerHTML = '';
+
+    const results = [];
+    let hasSrOrBetter = false;
+    for(let i=0; i<count; i++){
+      const force = (count === 10 && i === 9 && !hasSrOrBetter);
+      const res = rollSingleHero(force);
+      if(res.hero.rarity === 'SR' || res.hero.rarity === 'SSR') hasSrOrBetter = true;
+      results.push(res);
+    }
+    saveGachaData();
+    renderCharCards();
+    updateShowcaseUI(selectedChar);
+
+    let best = 'R';
+    results.forEach(r => {
+      if(r.hero.rarity === 'SSR') best = 'SSR';
+      else if(r.hero.rarity === 'SR' && best !== 'SSR') best = 'SR';
+    });
+    gachaAnim.maxRarity = best;
+    gachaAnim.pendingResults = results;
+    gachaAnim.state = 'falling';
+    gachaAnim.timer = 0;
+    gachaAnim.goldShiftTriggered = false;
+    playSfx(best === 'SSR' ? 'ssr_meteor' : 'gacha_fall');
+  }
+
+  // ---------- MOTOR DE CINEMÁTICA SSR PIXEL ART (ESTILO GENSHIN / HONKAI) ----------
+  const SSR_CUTSCENE_THEMES = {
+    hana: {
+      element: '🍃 ELEMENTO: ÉTER DEL BOSQUE',
+      constellation: 'Papilio Lunaris',
+      quote: '«Entre la luna esmeralda y el alba carmesí, mis alas responden a tu deseo.»',
+      bg1: '#05171e', bg2: '#0d3638', bg3: '#185c52',
+      accent: '#a8fff0', secAccent: '#ff3b6b', particleType: 'butterfly'
+    },
+    eleonore: {
+      element: '🔥 ELEMENTO: LLAMA CARMESÍ',
+      constellation: 'Rosa Sanguinea',
+      quote: '«Que el vitral escarlata se quiebre... y florezca la ceniza de mi pacto.»',
+      bg1: '#1a040f', bg2: '#3d0923', bg3: '#6e113c',
+      accent: '#ff5fa2', secAccent: '#ffd25f', particleType: 'rose_flame'
+    },
+    joanna: {
+      element: '✨ ELEMENTO: LUZ CELESTIAL',
+      constellation: 'Gladius Regalis',
+      quote: '«Por mi juramento eterno, este mandoble abrirá el cielo ante ti.»',
+      bg1: '#07142b', bg2: '#132e5c', bg3: '#245294',
+      accent: '#5fc9ff', secAccent: '#ffd25f', particleType: 'holy_sword'
+    },
+    raiden: {
+      element: '⚡ ELEMENTO: TRUENO ETERNO',
+      constellation: 'Fulmen Imperatrix',
+      quote: '«El relámpago no duda jamás: un solo corte basta para partir la eternidad.»',
+      bg1: '#0d0621', bg2: '#22114d', bg3: '#412082',
+      accent: '#b99aff', secAccent: '#ffd25f', particleType: 'lightning'
+    },
+    sol: {
+      element: '☀️ ELEMENTO: CORONA SOLAR',
+      constellation: 'Hasta Solis',
+      quote: '«¡Alza la mirada! Donde cae mi lanza, hasta la noche más fría arde.»',
+      bg1: '#210a04', bg2: '#4d1b0b', bg3: '#873514',
+      accent: '#ffbd59', secAccent: '#ff4500', particleType: 'sun_spear'
+    }
+  };
+
+  const ssrCutsceneModal = document.getElementById('ssrCutsceneModal');
+  const ssrCanvas = document.getElementById('ssrCutsceneCanvas');
+  const ssrCtx = ssrCanvas.getContext('2d');
+  const ssrQueueBadge = document.getElementById('ssrQueueBadge');
+  const ssrBottomHint = document.getElementById('ssrBottomHint');
+
+  const ssrCutscene = {
+    active: false,
+    queue: [],
+    currentIndex: 0,
+    currentEntry: null,
+    onFinishAll: null,
+    phase: 'warp', // 'warp' | 'silhouette' | 'shatter' | 'splash'
+    t: 0,
+    totalT: 0,
+    goldFakeoutPlayed: false,
+    shatterPlayed: false,
+    starsPlayed: 0,
+    shards: [],
+    particles: [],
+    demoCursor: 0
+  };
+
+  function initSsrParticles(theme){
+    ssrCutscene.particles = [];
+    for(let i=0; i<42; i++){
+      ssrCutscene.particles.push({
+        x: Math.random() * 480,
+        y: Math.random() * 270,
+        vx: (Math.random() - 0.5) * 35,
+        vy: -18 - Math.random() * 40,
+        sz: 2 + (i % 3) * 2,
+        phase: Math.random() * Math.PI * 2,
+        col: i % 3 === 0 ? '#ffd25f' : (i % 2 === 0 ? theme.accent : theme.secAccent)
+      });
+    }
+  }
+
+  function createShatterShards(theme){
+    ssrCutscene.shards = [];
+    for(let i=0; i<36; i++){
+      const ang = (i / 36) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+      const spd = 90 + Math.random() * 220;
+      ssrCutscene.shards.push({
+        x: 240 + Math.cos(ang) * (10 + Math.random() * 30),
+        y: 135 + Math.sin(ang) * (10 + Math.random() * 30),
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        w: 10 + (i % 4) * 6,
+        h: 8 + ((i + 1) % 3) * 6,
+        col: i % 3 === 0 ? '#ffffff' : (i % 2 === 0 ? '#ffd25f' : theme.accent)
+      });
+    }
+  }
+
+  function loadCurrentSsrEntry(){
+    const entry = ssrCutscene.queue[ssrCutscene.currentIndex];
+    ssrCutscene.currentEntry = entry;
+    ssrCutscene.phase = 'warp';
+    ssrCutscene.t = 0;
+    ssrCutscene.totalT = 0;
+    ssrCutscene.goldFakeoutPlayed = false;
+    ssrCutscene.shatterPlayed = false;
+    ssrCutscene.starsPlayed = 0;
+    const theme = SSR_CUTSCENE_THEMES[entry.hero.id] || SSR_CUTSCENE_THEMES.hana;
+    initSsrParticles(theme);
+    createShatterShards(theme);
+    const total = ssrCutscene.queue.length;
+    ssrQueueBadge.textContent = total > 1
+      ? `✨ APARICIÓN 5★ SSR (${ssrCutscene.currentIndex + 1} / ${total}) ✨`
+      : `✨ APARICIÓN ASTRAL 5★ SSR ✨`;
+    ssrBottomHint.textContent = '🌠 Fase 1/3: Salto Astral · Haz clic para avanzar de fase';
+    playSfx('ssr_meteor');
+  }
+
+  function startSsrCutsceneQueue(ssrEntries, onFinishCallback){
+    if(!ssrEntries || !ssrEntries.length){
+      if(onFinishCallback) onFinishCallback();
+      return;
+    }
+    ssrCutscene.queue = ssrEntries;
+    ssrCutscene.currentIndex = 0;
+    ssrCutscene.onFinishAll = onFinishCallback || null;
+    ssrCutscene.active = true;
+    ssrCutsceneModal.classList.add('active');
+    loadCurrentSsrEntry();
+  }
+
+  function advanceOrSkipSsrCutscene(forceSkipCurrent){
+    if(!ssrCutscene.active) return;
+    const entry = ssrCutscene.currentEntry;
+    const theme = (entry && SSR_CUTSCENE_THEMES[entry.hero.id]) || SSR_CUTSCENE_THEMES.hana;
+    if(!forceSkipCurrent){
+      if(ssrCutscene.phase === 'warp'){
+        ssrCutscene.phase = 'silhouette';
+        ssrCutscene.t = 0;
+        playSfx('ssr_gold_shift');
+        ssrBottomHint.textContent = '🔮 Fase 2/3: Silueta Elemental · Haz clic para revelar Splash Art';
+        return;
+      } else if(ssrCutscene.phase === 'silhouette'){
+        ssrCutscene.phase = 'shatter';
+        ssrCutscene.t = 0;
+        createShatterShards(theme);
+        playSfx('ssr_shatter');
+        return;
+      } else if(ssrCutscene.phase === 'shatter'){
+        ssrCutscene.phase = 'splash';
+        ssrCutscene.t = 0.8;
+        playSfx('ssr_fanfare');
+        return;
+      } else if(ssrCutscene.phase === 'splash' && ssrCutscene.t < 0.85){
+        ssrCutscene.t = 0.9;
+        ssrCutscene.starsPlayed = 5;
+        playSfx('ssr_fanfare');
+        return;
+      }
+    }
+    // Avanzar al siguiente SSR en cola o cerrar
+    if(ssrCutscene.currentIndex + 1 < ssrCutscene.queue.length){
+      ssrCutscene.currentIndex++;
+      loadCurrentSsrEntry();
+    } else {
+      ssrCutscene.active = false;
+      ssrCutsceneModal.classList.remove('active');
+      if(ssrCutscene.onFinishAll){
+        const cb = ssrCutscene.onFinishAll;
+        ssrCutscene.onFinishAll = null;
+        cb();
+      }
+    }
+  }
+
+  ssrCanvas.addEventListener('click', ()=> advanceOrSkipSsrCutscene(false));
+  document.getElementById('btnSkipSsrCutscene').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    advanceOrSkipSsrCutscene(true);
+  });
+
+  // Botón para probar la cinemática SSR en cualquier momento
+  document.getElementById('btnDemoSsrCutscene').addEventListener('click', ()=>{
+    const ssrPool = CHARACTERS.filter(c => c.rarity === 'SSR');
+    const chosen = (selectedChar && selectedChar.rarity === 'SSR')
+      ? selectedChar
+      : ssrPool[ssrCutscene.demoCursor % ssrPool.length];
+    ssrCutscene.demoCursor++;
+    const stars = Math.max(1, getHeroStars(chosen.id));
+    startSsrCutsceneQueue([{ hero: chosen, status: '¡CINEMÁTICA 5★!', stars: stars }], null);
+  });
+
+  function drawPixelStar(ctx, cx, cy, outerR, colOuter, colInner){
+    const r = Math.round(outerR);
+    ctx.fillStyle = colOuter;
+    ctx.fillRect(cx - r, cy - 2, r * 2, 4);
+    ctx.fillRect(cx - 2, cy - r, 4, r * 2);
+    const d = Math.max(2, Math.round(r * 0.55));
+    ctx.fillRect(cx - d, cy - d, d * 2, d * 2);
+    ctx.fillStyle = colInner;
+    const ir = Math.max(2, Math.round(r * 0.35));
+    ctx.fillRect(cx - ir, cy - ir, ir * 2, ir * 2);
+  }
+
+  function drawPixelFivePointStar(ctx, cx, cy, scale, colMain, colShade, colCore){
+    // Estrella 5 puntas en matriz pixel-art 11x11
+    const mask = [
+      ".....1.....",
+      "....121....",
+      "....121....",
+      "11112321111",
+      ".122232221.",
+      "..1233321..",
+      "..1222221..",
+      ".1221.1221.",
+      ".121...121.",
+      "11.......11",
+      "..........."
+    ];
+    const s = Math.max(1, Math.round(scale));
+    const ox = Math.round(cx - (11 * s) / 2);
+    const oy = Math.round(cy - (11 * s) / 2);
+    for(let y=0; y<11; y++){
+      for(let x=0; x<11; x++){
+        const ch = mask[y][x];
+        if(ch === '.') continue;
+        ctx.fillStyle = ch === '1' ? colShade : (ch === '2' ? colMain : colCore);
+        ctx.fillRect(ox + x * s, oy + y * s, s, s);
+      }
+    }
+  }
+
+  function drawElementalCrestPixelArt(ctx, cx, cy, heroId, theme, t){
+    const pulse = Math.sin(t * 6) * 4;
+    // Anillo rúnico exterior pixelado
+    const rad1 = 76 + pulse;
+    const rad2 = 58 - pulse * 0.5;
+    for(let i=0; i<32; i++){
+      const a = (i / 32) * Math.PI * 2 + t * 0.8;
+      const x1 = Math.round((cx + Math.cos(a) * rad1) / 2) * 2;
+      const y1 = Math.round((cy + Math.sin(a) * rad1) / 2) * 2;
+      ctx.fillStyle = i % 2 === 0 ? '#ffd25f' : theme.accent;
+      ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
+
+      const b = -a * 1.4;
+      const x2 = Math.round((cx + Math.cos(b) * rad2) / 2) * 2;
+      const y2 = Math.round((cy + Math.sin(b) * rad2) / 2) * 2;
+      ctx.fillStyle = theme.secAccent;
+      ctx.fillRect(x2 - 2, y2 - 2, 3, 3);
+    }
+
+    // Emblema específico del personaje en el fondo
+    if(heroId === 'hana'){
+      // Lunas gemelas (Esmeralda y Carmesí) + alas de hada pixeladas
+      for(let i=0; i<10; i++){
+        ctx.fillStyle = '#1fa69b';
+        ctx.fillRect(cx - 86 + i*4, cy - 34 + i*3, 18, 5);
+        ctx.fillStyle = '#e62e4d';
+        ctx.fillRect(cx + 68 - i*4, cy - 34 + i*3, 18, 5);
+      }
+    } else if(heroId === 'eleonore'){
+      // Rosetón gótico carmesí
+      for(let i=0; i<8; i++){
+        const a = (i / 8) * Math.PI * 2 + t * 0.5;
+        const rx = Math.round(cx + Math.cos(a) * 42);
+        const ry = Math.round(cy + Math.sin(a) * 42);
+        ctx.fillStyle = '#b81d58';
+        ctx.fillRect(rx - 8, ry - 8, 16, 16);
+        ctx.fillStyle = '#ffd25f';
+        ctx.fillRect(rx - 3, ry - 3, 6, 6);
+      }
+    } else if(heroId === 'joanna'){
+      // Cruz de luz real y pilares de catedral
+      ctx.fillStyle = 'rgba(255, 210, 95, 0.25)';
+      ctx.fillRect(cx - 12, 0, 24, 270);
+      ctx.fillRect(cx - 95, cy - 10, 190, 20);
+    } else if(heroId === 'raiden'){
+      // Rayos púrpura y dorados cayendo en zigzag
+      for(let b=0; b<4; b++){
+        let lx = cx - 90 + b * 60;
+        for(let seg=0; seg<12; seg++){
+          lx += Math.round(Math.sin(t * 18 + seg + b) * 6);
+          ctx.fillStyle = seg % 2 === 0 ? '#b99aff' : '#ffd25f';
+          ctx.fillRect(lx, seg * 22, 4, 24);
+        }
+      }
+    } else if(heroId === 'sol'){
+      // Rayos solares rotatorios
+      for(let i=0; i<12; i++){
+        const a = (i / 12) * Math.PI * 2 + t * 1.2;
+        for(let d=30; d<95; d+=8){
+          ctx.fillStyle = d < 65 ? '#ffd25f' : '#ff5500';
+          ctx.fillRect(cx + Math.cos(a)*d - 3, cy + Math.sin(a)*d - 3, 6, 6);
+        }
+      }
+    }
+  }
+
+  function updateAndRenderSsrCutscene(dt){
+    if(!ssrCutscene.active || !ssrCutscene.currentEntry) return;
+    const w = ssrCanvas.width, h = ssrCanvas.height;
+    ssrCtx.imageSmoothingEnabled = false;
+
+    ssrCutscene.t += dt;
+    ssrCutscene.totalT += dt;
+    const entry = ssrCutscene.currentEntry;
+    const hero = entry.hero;
+    const theme = SSR_CUTSCENE_THEMES[hero.id] || SSR_CUTSCENE_THEMES.hana;
+
+    // Actualizar partículas temáticas
+    ssrCutscene.particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      if(p.y < -10){ p.y = h + 10; p.x = Math.random() * w; }
+      if(p.x < -10) p.x = w + 10;
+      if(p.x > w + 10) p.x = -10;
+    });
+
+    // FASE 1: SALTO ASTRAL / PUERTA DE CELESTIA / TREN ESTELAR (0.0s -> 1.85s)
+    if(ssrCutscene.phase === 'warp'){
+      const p = Math.min(1, ssrCutscene.t / 1.85);
+      // Fondo de cosmos pixel-art
+      for(let y=0; y<h; y+=6){
+        ssrCtx.fillStyle = y < 90 ? '#050819' : (y < 180 ? '#0c1438' : '#1b1038');
+        ssrCtx.fillRect(0, y, w, 6);
+      }
+
+      // Vías del Tren Astral / Puertas de Celestia en perspectiva
+      const vpX = 370, vpY = 185;
+      for(let i=0; i<10; i++){
+        const prog = ((i / 10) + ssrCutscene.t * 0.5) % 1;
+        const px = vpX - (1 - prog) * 320;
+        const py = vpY - (1 - prog) * 140;
+        const ph = Math.round(25 + prog * 95);
+        ssrCtx.fillStyle = prog > 0.55 ? '#2a3970' : '#182247';
+        ssrCtx.fillRect(px, py - ph/2, 8, ph);
+        ssrCtx.fillStyle = '#ffd25f';
+        ssrCtx.fillRect(px + 2, py - ph/2, 4, 4);
+      }
+
+      // Líneas de velocidad estelar en el cosmos
+      for(let i=0; i<28; i++){
+        const sx = ((i * 53 - Math.floor(ssrCutscene.t * 420)) % w + w) % w;
+        const sy = (i * 29) % h;
+        ssrCtx.fillStyle = i % 4 === 0 ? '#ffd25f' : '#5fc9ff';
+        ssrCtx.fillRect(sx, sy, 14 + (i % 3) * 8, 2);
+      }
+
+      // El Cometa: empieza azul/púrpura y en p=0.38 hace el FAKE-OUT DORADO ARCOÍRIS
+      const isGolden = p >= 0.38;
+      if(isGolden && !ssrCutscene.goldFakeoutPlayed){
+        ssrCutscene.goldFakeoutPlayed = true;
+        playSfx('ssr_gold_shift');
+      }
+
+      const mx = 30 + p * 355;
+      const my = 24 + p * 165;
+
+      // Estela arcoíris/dorada del cometa
+      for(let k=22; k>=1; k--){
+        const tx = mx - k * 12;
+        const ty = my - k * 5.5 + Math.sin(ssrCutscene.t * 16 + k * 0.5) * 3;
+        const sz = Math.max(2, Math.round((24 - k) * 0.9));
+        if(!isGolden){
+          ssrCtx.fillStyle = k % 2 === 0 ? '#5fc9ff' : '#c49bff';
+        } else {
+          const colors = ['#ffffff', '#ffd25f', '#ff9f1c', '#ff5fa2', '#5fc9ff'];
+          ssrCtx.fillStyle = colors[k % colors.length];
+        }
+        ssrCtx.fillRect(Math.round(tx - sz/2), Math.round(ty - sz/2), sz, sz);
+      }
+
+      // Onda expansiva en el momento del cambio a Dorado (Fake-out)
+      if(isGolden && p < 0.72){
+        const ringR = (p - 0.38) * 380;
+        for(let a=0; a<28; a++){
+          const ang = (a / 28) * Math.PI * 2;
+          ssrCtx.fillStyle = a % 2 === 0 ? '#ffd25f' : '#ff5fa2';
+          ssrCtx.fillRect(mx + Math.cos(ang)*ringR - 3, my + Math.sin(ang)*ringR - 3, 6, 6);
+        }
+      }
+
+      // Núcleo de Estrella de 4 puntas (Primogema / Jade Estelar en Pixel Art)
+      drawPixelStar(ssrCtx, Math.round(mx), Math.round(my), isGolden ? 26 : 16, isGolden ? '#ffd25f' : '#5fc9ff', '#ffffff');
+
+      // Texto de estado estilo Honkai/Genshin
+      ssrCtx.fillStyle = isGolden ? '#ffd25f' : '#5fc9ff';
+      ssrCtx.font = 'bold 12px monospace';
+      ssrCtx.textAlign = 'left';
+      ssrCtx.fillText(isGolden ? '🌟 ¡SEÑAL DORADA 5★ DETECTADA!' : '🌠 Sincronizando Salto Astral...', 16, 252);
+
+      // Flash blanco-dorado al impactar la puerta al final
+      if(p > 0.85){
+        ssrCtx.fillStyle = `rgba(255, 235, 160, ${(p - 0.85) / 0.15})`;
+        ssrCtx.fillRect(0, 0, w, h);
+      }
+
+      if(ssrCutscene.t >= 1.85){
+        ssrCutscene.phase = 'silhouette';
+        ssrCutscene.t = 0;
+        ssrBottomHint.textContent = '🔮 Fase 2/3: Silueta Elemental · Haz clic para revelar Splash Art';
+      }
+      return;
+    }
+
+    // FASE 2: EMBLEMA ELEMENTAL & SILUETA MISTERIOSA (0.0s -> 1.45s)
+    if(ssrCutscene.phase === 'silhouette'){
+      const p = Math.min(1, ssrCutscene.t / 1.45);
+      // Fondo oscuro abismal con gradiente del elemento
+      for(let y=0; y<h; y+=6){
+        ssrCtx.fillStyle = y < 90 ? '#06040d' : (y < 190 ? theme.bg1 : theme.bg2);
+        ssrCtx.fillRect(0, y, w, 6);
+      }
+
+      // Líneas de impacto convergentes hacia el centro
+      const cx = w / 2, cy = h / 2 - 8;
+      drawElementalCrestPixelArt(ssrCtx, cx, cy, hero.id, theme, ssrCutscene.totalT);
+
+      // Dibujar Silueta Pixel Art con zoom dramático y borde dorado
+      const silCv = PORTRAIT_SILHOUETTE_CANVASES[hero.id];
+      const scale = 2.1 + Math.min(0.35, p * 0.35);
+      const drawW = Math.round(64 * scale);
+      const drawH = Math.round(64 * scale);
+      const dx = Math.round(cx - drawW / 2);
+      const dy = Math.round(cy - drawH / 2 - 4);
+
+      // Halo dorado detrás de la silueta
+      ssrCtx.fillStyle = 'rgba(255, 210, 95, 0.18)';
+      ssrCtx.fillRect(dx - 8, dy - 8, drawW + 16, drawH + 16);
+      if(silCv){
+        ssrCtx.drawImage(silCv, 0, 0, 64, 64, dx, dy, drawW, drawH);
+      }
+
+      // Caja de diálogo con la frase de invocación (efecto máquina de escribir)
+      ssrCtx.fillStyle = 'rgba(8, 10, 22, 0.92)';
+      ssrCtx.fillRect(28, h - 54, w - 56, 40);
+      ssrCtx.strokeStyle = '#ffd25f';
+      ssrCtx.lineWidth = 2;
+      ssrCtx.strokeRect(28, h - 54, w - 56, 40);
+
+      ssrCtx.fillStyle = theme.accent;
+      ssrCtx.font = 'bold 10px monospace';
+      ssrCtx.textAlign = 'center';
+      ssrCtx.fillText(`${theme.element} · CONSTELACIÓN: ${theme.constellation}`, cx, h - 38);
+
+      const charsToShow = Math.floor(theme.quote.length * Math.min(1, p * 1.35));
+      ssrCtx.fillStyle = '#ffffff';
+      ssrCtx.font = '10px monospace';
+      ssrCtx.fillText(theme.quote.slice(0, charsToShow), cx, h - 22);
+
+      // Destello inicial al entrar a la fase
+      if(ssrCutscene.t < 0.25){
+        ssrCtx.fillStyle = `rgba(255, 225, 130, ${1 - ssrCutscene.t / 0.25})`;
+        ssrCtx.fillRect(0, 0, w, h);
+      }
+
+      if(ssrCutscene.t >= 1.45){
+        ssrCutscene.phase = 'shatter';
+        ssrCutscene.t = 0;
+        createShatterShards(theme);
+        playSfx('ssr_shatter');
+      }
+      return;
+    }
+
+    // FASE 3: RUPTURA DE CRISTAL ASTRAL (0.0s -> 0.42s)
+    if(ssrCutscene.phase === 'shatter'){
+      const p = Math.min(1, ssrCutscene.t / 0.42);
+      ssrCtx.fillStyle = theme.bg2;
+      ssrCtx.fillRect(0, 0, w, h);
+
+      ssrCutscene.shards.forEach(sh => {
+        sh.x += sh.vx * dt;
+        sh.y += sh.vy * dt;
+        ssrCtx.fillStyle = sh.col;
+        ssrCtx.fillRect(Math.round(sh.x), Math.round(sh.y), sh.w, sh.h);
+        ssrCtx.strokeStyle = '#120a1f';
+        ssrCtx.strokeRect(Math.round(sh.x), Math.round(sh.y), sh.w, sh.h);
+      });
+
+      ssrCtx.fillStyle = `rgba(255, 250, 220, ${1 - p * 0.7})`;
+      ssrCtx.fillRect(0, 0, w, h);
+
+      if(ssrCutscene.t >= 0.42){
+        ssrCutscene.phase = 'splash';
+        ssrCutscene.t = 0;
+        playSfx('ssr_fanfare');
+        ssrBottomHint.textContent = '🌟 ¡HÉROE 5★ SSR OBTENIDO! Haz clic para continuar 🌟';
+      }
+      return;
+    }
+
+    // FASE 4: SPLASH ART LEGENDARIO 5★ (ESTILO GENSHIN / HONKAI PIXEL ART)
+    if(ssrCutscene.phase === 'splash'){
+      const t = ssrCutscene.t;
+      // Shake de cámara cuando caen las 5 estrellas
+      let shakeX = 0, shakeY = 0;
+      if(t < 0.75){
+        const starStep = Math.min(5, Math.floor(t / 0.13) + 1);
+        if(starStep > ssrCutscene.starsPlayed){
+          ssrCutscene.starsPlayed = starStep;
+          playSfx('ssr_star_' + starStep);
+        }
+        if((t % 0.13) < 0.06){
+          shakeX = Math.round((Math.random() - 0.5) * 6);
+          shakeY = Math.round((Math.random() - 0.5) * 6);
+        }
+      }
+
+      ssrCtx.save();
+      ssrCtx.translate(shakeX, shakeY);
+
+      // 1. Fondo Splash Art con franjas diagonales dinámicas
+      for(let y=0; y<h; y+=4){
+        ssrCtx.fillStyle = y < 85 ? theme.bg1 : (y < 175 ? theme.bg2 : theme.bg3);
+        ssrCtx.fillRect(0, y, w, 4);
+      }
+      // Franja diagonal dorada/elemental estilo banner de Honkai Star Rail
+      for(let y=0; y<h; y+=4){
+        const bandX = 185 - Math.floor(y * 0.35);
+        ssrCtx.fillStyle = 'rgba(255, 210, 95, 0.14)';
+        ssrCtx.fillRect(bandX, y, 165, 4);
+        ssrCtx.fillStyle = '#ffd25f';
+        ssrCtx.fillRect(bandX, y, 4, 4);
+        ssrCtx.fillRect(bandX + 161, y, 4, 4);
+      }
+
+      // 2. Círculo arcano / Constelación girando detrás del personaje
+      const artCx = 165, artCy = 132;
+      drawElementalCrestPixelArt(ssrCtx, artCx, artCy, hero.id, theme, ssrCutscene.totalT);
+
+      // Partículas ascendentes de fondo
+      ssrCutscene.particles.forEach(pt => {
+        ssrCtx.fillStyle = pt.col;
+        ssrCtx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.sz, pt.sz);
+      });
+
+      // 3. Retrato Pixel Art HD sin fondo (recortado limpio) a gran escala + Marco de Splash
+      const fgCv = PORTRAIT_FG_CANVASES[hero.id] || PORTRAIT_CANVASES[hero.id];
+      const portScale = 2.65;
+      const pw = Math.round(64 * portScale);
+      const ph = Math.round(64 * portScale);
+      const px = Math.round(artCx - pw / 2 - 12);
+      const py = Math.round(artCy - ph / 2 + 4);
+
+      // Sombra proyectada dorada/carmesí tipo Splash Art
+      const silCv = PORTRAIT_SILHOUETTE_CANVASES[hero.id];
+      if(silCv){
+        ssrCtx.globalAlpha = 0.45;
+        ssrCtx.drawImage(silCv, 0, 0, 64, 64, px - 8, py + 6, pw, ph);
+        ssrCtx.globalAlpha = 1.0;
+      }
+      ssrCtx.drawImage(fgCv, 0, 0, 64, 64, px, py, pw, ph);
+
+      // 4. Modelo Chibi SD animado en vivo + Arma insignia orbitando junto al Splash Art
+      const chibiDef = SPRITE_DEFS[hero.sprite];
+      const chFrame = Math.floor(ssrCutscene.totalT * 8) % 6;
+      const wepFrame = Math.floor(ssrCutscene.totalT * 10) % 4;
+      const wd = WEAPON_DEFS[hero.id];
+
+      // Plataforma holográfica/elemental para el Chibi
+      const chX = 258, chY = 192;
+      ssrCtx.fillStyle = '#0b0f22';
+      ssrCtx.fillRect(chX - 28, chY + 22, 56, 10);
+      ssrCtx.fillStyle = '#ffd25f';
+      ssrCtx.fillRect(chX - 24, chY + 24, 48, 4);
+      if(chibiDef){
+        ssrCtx.drawImage(chibiDef.canvas, chFrame * 64, 0, 64, 64, chX - 32, chY - 34, 64, 64);
+      }
+      if(wd){
+        const orbA = ssrCutscene.totalT * 3.8;
+        const wx = chX + Math.cos(orbA) * 34;
+        const wy = chY - 6 + Math.sin(orbA) * 18;
+        ssrCtx.drawImage(wd.canvas, wepFrame * wd.w, 0, wd.w, wd.h, Math.round(wx - 18), Math.round(wy - 18), 36, 36);
+      }
+
+      // 5. Panel de Presentación Derecha (Nombre, Rol, 5 Estrellas Pixel Art, Arma y Cita)
+      const cardX = 282, cardY = 28, cardW = 184, cardH = 178;
+      ssrCtx.fillStyle = 'rgba(9, 12, 28, 0.90)';
+      ssrCtx.fillRect(cardX, cardY, cardW, cardH);
+      ssrCtx.strokeStyle = '#ffd25f';
+      ssrCtx.lineWidth = 2;
+      ssrCtx.strokeRect(cardX, cardY, cardW, cardH);
+
+      // Insignia SSR + Estado (¡NUEVO! o ASCENSIÓN)
+      ssrCtx.fillStyle = '#ffd25f';
+      ssrCtx.fillRect(cardX + 8, cardY + 8, 46, 18);
+      ssrCtx.fillStyle = '#1a0f00';
+      ssrCtx.font = 'bold 12px monospace';
+      ssrCtx.textAlign = 'center';
+      ssrCtx.fillText('SSR', cardX + 31, cardY + 21);
+
+      ssrCtx.fillStyle = entry.status === '¡NUEVO!' ? '#6ef2a0' : '#ff9f1c';
+      ssrCtx.fillRect(cardX + 60, cardY + 8, 114, 18);
+      ssrCtx.fillStyle = '#091912';
+      ssrCtx.font = 'bold 10px monospace';
+      ssrCtx.fillText(entry.status, cardX + 117, cardY + 21);
+
+      // Nombre del Héroe en grande
+      ssrCtx.fillStyle = hero.color;
+      ssrCtx.font = 'bold 22px monospace';
+      ssrCtx.textAlign = 'left';
+      ssrCtx.fillText(hero.name.toUpperCase(), cardX + 10, cardY + 48);
+
+      // Rol y Constelación
+      ssrCtx.fillStyle = '#ffffff';
+      ssrCtx.font = 'bold 10px monospace';
+      ssrCtx.fillText(hero.role, cardX + 10, cardY + 64);
+      ssrCtx.fillStyle = theme.accent;
+      ssrCtx.font = '9px monospace';
+      ssrCtx.fillText(theme.element, cardX + 10, cardY + 78);
+
+      // LAS 5 ESTRELLAS DORADAS PIXEL ART CAYENDO UNA POR UNA
+      const numStarsVisible = Math.min(5, Math.floor(t / 0.13) + 1);
+      for(let s=0; s<5; s++){
+        const sx = cardX + 24 + s * 32;
+        const sy = cardY + 100;
+        if(s < numStarsVisible){
+          const age = t - s * 0.13;
+          const sc = age < 0.08 ? 3 : 2;
+          drawPixelFivePointStar(ssrCtx, sx, sy, sc, '#ffd25f', '#d97706', '#ffffff');
+        } else {
+          drawPixelFivePointStar(ssrCtx, sx, sy, 2, '#2a3268', '#151b38', '#2a3268');
+        }
+      }
+
+      // Caja del Arma Insignia y Estadísticas con multiplicador de Estrellas
+      ssrCtx.fillStyle = '#141b3d';
+      ssrCtx.fillRect(cardX + 8, cardY + 118, cardW - 16, 50);
+      ssrCtx.strokeStyle = theme.accent;
+      ssrCtx.lineWidth = 1;
+      ssrCtx.strokeRect(cardX + 8, cardY + 118, cardW - 16, 50);
+
+      if(wd){
+        ssrCtx.drawImage(wd.canvas, wepFrame * wd.w, 0, wd.w, wd.h, cardX + 12, cardY + 125, 36, 36);
+      }
+      ssrCtx.fillStyle = '#ffd25f';
+      ssrCtx.font = 'bold 10px monospace';
+      ssrCtx.fillText(hero.weapon.name, cardX + 52, cardY + 135);
+      const mult = getStarMult(hero.id);
+      ssrCtx.fillStyle = '#c4d0f5';
+      ssrCtx.font = '9px monospace';
+      ssrCtx.fillText(`VIDA: ${Math.round(hero.hp * mult)} · DAÑO: ${Math.round(hero.weapon.dmg * mult)}`, cardX + 52, cardY + 149);
+      ssrCtx.fillStyle = '#6ef2a0';
+      ssrCtx.fillText(`RANGO ACTUAL: ${'★'.repeat(entry.stars)}`, cardX + 52, cardY + 162);
+
+      // Cita inferior completa en barra cinemática
+      ssrCtx.fillStyle = 'rgba(8, 10, 22, 0.92)';
+      ssrCtx.fillRect(14, h - 42, w - 28, 30);
+      ssrCtx.strokeStyle = '#ffd25f';
+      ssrCtx.lineWidth = 2;
+      ssrCtx.strokeRect(14, h - 42, w - 28, 30);
+      ssrCtx.fillStyle = '#ffd25f';
+      ssrCtx.font = 'bold 10px monospace';
+      ssrCtx.textAlign = 'center';
+      ssrCtx.fillText(theme.quote, w / 2, h - 23);
+
+      // Flash dorado decreciente en los primeros 0.25s del Splash Art
+      if(t < 0.25){
+        ssrCtx.fillStyle = `rgba(255, 245, 200, ${1 - t / 0.25})`;
+        ssrCtx.fillRect(0, 0, w, h);
+      }
+
+      ssrCtx.restore();
+    }
+  }
+
+  function showGachaResultCards(results){
+    const container = document.getElementById('gachaResults');
+    container.innerHTML = '';
+    results.forEach((r, idx) => {
+      const card = document.createElement('div');
+      card.className = `pull-card ${r.hero.rarity}`;
+      card.style.animationDelay = `${idx * 0.06}s`;
+      const isNew = r.status === '¡NUEVO!';
+      const replayBtnHtml = r.hero.rarity === 'SSR'
+        ? `<div class="replay-ssr-btn" data-replay="1">🎬 Ver Animación</div>`
+        : '';
+      card.innerHTML = `
+        <span class="rarity-badge rarity-${r.hero.rarity}">${r.hero.rarity}</span>
+        <img src="${IMG[r.hero.id + '_portrait'].src}" alt="${r.hero.name}">
+        <div style="font-weight:900; font-size:13px; color:${r.hero.color}">${r.hero.name}</div>
+        <div style="font-size:10px; color:var(--accent3);">${'★'.repeat(r.stars)}</div>
+        <span class="pull-tag ${isNew ? 'new' : 'up'}">${r.status}</span>
+        ${replayBtnHtml}
+      `;
+      const replayBtn = card.querySelector('.replay-ssr-btn');
+      if(replayBtn){
+        replayBtn.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          startSsrCutsceneQueue([r], null);
+        });
+      }
+      card.addEventListener('click', ()=>{
+        selectCharacter(r.hero);
+        screenGacha.classList.remove('active');
+        screenSelect.classList.add('active');
+        playSfx('select');
+      });
+      container.appendChild(card);
+    });
+  }
+
+  function updateAndRenderGachaStage(dt){
+    if(!screenGacha.classList.contains('active')) return;
+    const w = gachaCanvas.width, h = gachaCanvas.height;
+    gctx.imageSmoothingEnabled = false;
+    gctx.fillStyle = '#070a18';
+    gctx.fillRect(0, 0, w, h);
+
+    const t = performance.now() / 1000;
+    for(let i=0; i<35; i++){
+      const sx = (i*73) % w;
+      const sy = (i*41) % (h-40);
+      gctx.fillStyle = (i%3===0) ? '#ffd25f' : '#5fc9ff';
+      const sz = ((i + Math.floor(t*3))%2 === 0) ? 2 : 4;
+      gctx.fillRect(sx, sy, sz, sz);
+    }
+
+    const cx = w/2, cy = h - 34;
+    gctx.fillStyle = '#1d2550';
+    gctx.fillRect(cx - 110, cy, 220, 18);
+    gctx.fillStyle = '#2a3268';
+    gctx.fillRect(cx - 85, cy - 10, 170, 10);
+    gctx.fillStyle = '#ffd25f';
+    gctx.fillRect(cx - 60, cy - 12, 120, 3);
+
+    gctx.fillStyle = '#232c5c';
+    gctx.fillRect(cx - 140, cy - 90, 22, 108);
+    gctx.fillRect(cx + 118, cy - 90, 22, 108);
+    gctx.fillStyle = '#5fc9ff';
+    gctx.fillRect(cx - 133, cy - 70 + Math.sin(t*3)*4, 8, 24);
+    gctx.fillRect(cx + 125, cy - 70 + Math.sin(t*3)*4, 8, 24);
+
+    if(gachaAnim.state === 'idle'){
+      const oy = cy - 55 + Math.sin(t*3)*6;
+      gctx.fillStyle = '#5fc9ff44';
+      gctx.fillRect(cx - 26, oy - 26, 52, 52);
+      gctx.fillStyle = '#c49bff';
+      gctx.fillRect(cx - 16, oy - 16, 32, 32);
+      gctx.fillStyle = '#ffd25f';
+      gctx.fillRect(cx - 8, oy - 8, 16, 16);
+      gctx.fillStyle = '#ffffff';
+      gctx.font = 'bold 11px monospace';
+      gctx.textAlign = 'center';
+      gctx.fillText('LISTO PARA INVOCAR', cx, cy - 100);
+    } else if(gachaAnim.state === 'falling'){
+      gachaAnim.timer += dt * (gachaAnim.maxRarity === 'SSR' ? 1.25 : 1.75);
+      const p = Math.min(1, gachaAnim.timer);
+      const mx = 120 + (cx - 120) * p;
+      const my = 10 + (cy - 30 - 10) * p;
+
+      // Efecto Fake-Out estilo Genshin/Honkai en el altar cuando sale un SSR
+      const isSsrGoldPhase = gachaAnim.maxRarity === 'SSR' && p >= 0.42;
+      if(isSsrGoldPhase && !gachaAnim.goldShiftTriggered){
+        gachaAnim.goldShiftTriggered = true;
+        playSfx('ssr_gold_shift');
+      }
+
+      const col = isSsrGoldPhase
+        ? '#ffd25f'
+        : (gachaAnim.maxRarity === 'SR' || (gachaAnim.maxRarity === 'SSR' && p >= 0.2))
+          ? '#c49bff'
+          : '#5fc9ff';
+
+      for(let k=1; k<=12; k++){
+        gctx.fillStyle = isSsrGoldPhase && k % 3 === 0 ? '#ff5fa2' : col;
+        const tx = mx - k*12, ty = my - k*7;
+        const sz = Math.max(4, 24 - k*2);
+        gctx.fillRect(tx - sz/2, ty - sz/2, sz, sz);
+      }
+
+      if(isSsrGoldPhase){
+        drawPixelStar(gctx, Math.round(mx), Math.round(my), 22, '#ffd25f', '#ffffff');
+      } else {
+        gctx.fillStyle = '#ffffff';
+        gctx.fillRect(mx - 12, my - 12, 24, 24);
+      }
+
+      if(p >= 1){
+        gachaAnim.state = 'flash';
+        gachaAnim.timer = 0;
+        const ssrPulls = gachaAnim.pendingResults.filter(r => r.hero.rarity === 'SSR');
+        if(ssrPulls.length > 0){
+          // Lanzar la cinemática estilo Genshin/Honkai en Pixel Art para cada SSR obtenido
+          startSsrCutsceneQueue(ssrPulls, ()=>{
+            playSfx('gacha_ssr');
+            showGachaResultCards(gachaAnim.pendingResults);
+          });
+        } else {
+          playSfx('gacha_ssr');
+          showGachaResultCards(gachaAnim.pendingResults);
+        }
+      }
+    } else if(gachaAnim.state === 'flash'){
+      gachaAnim.timer += dt * 2.2;
+      const r = gachaAnim.timer * 260;
+      const col = gachaAnim.maxRarity === 'SSR' ? '#ffd25f' : gachaAnim.maxRarity === 'SR' ? '#c49bff' : '#5fc9ff';
+      gctx.fillStyle = col;
+      for(let i=0; i<24; i++){
+        const a = (i/24)*Math.PI*2;
+        gctx.fillRect(cx + Math.cos(a)*r - 6, (cy-30) + Math.sin(a)*r - 6, 12, 12);
+      }
+      if(gachaAnim.timer >= 1){
+        gachaAnim.state = 'idle';
+      }
+    }
+  }
+
+  document.getElementById('btnOpenGacha').addEventListener('click', ()=>{
+    playSfx('select');
+    screenSelect.classList.remove('active');
+    screenGallery.classList.remove('active');
+    screenGame.classList.remove('active');
+    screenGacha.classList.add('active');
+    updateGachaHeaderUI();
+  });
+  document.getElementById('btnCloseGacha').addEventListener('click', ()=>{
+    playSfx('select');
+    screenGacha.classList.remove('active');
+    screenSelect.classList.add('active');
+  });
+  document.getElementById('btnGoGacha').addEventListener('click', ()=>{
+    playSfx('select');
+    document.getElementById('gameover').classList.remove('active');
+    screenGame.classList.remove('active');
+    screenGacha.classList.add('active');
+    if(game) game.stop();
+  });
+  document.getElementById('btnFreeCrystals').addEventListener('click', ()=>{
+    gachaData.crystals += 500;
+    saveGachaData();
+    playSfx('gacha_ssr');
+  });
+  document.getElementById('btnPull1').addEventListener('click', ()=> performGachaPull(1, 100));
+  document.getElementById('btnPull10').addEventListener('click', ()=> performGachaPull(10, 900));
+
+  // ---------- DOJO DE PRUEBA EN VIVO ----------
+  const dojoCanvas = document.getElementById('dojoCanvas');
+  const dctx = dojoCanvas.getContext('2d');
+  const dojoState = {
+    t: 0, frame: 0, wepFrame: 0, orbitAng: 0, cd: 0.4, heroDash: 0,
+    dummyHit: 0, bullets: [], novas: [], dmgTexts: []
+  };
+
+  document.getElementById('dojoBox').addEventListener('click', ()=>{
+    dojoState.heroDash = 0.28;
+    dojoState.cd = 0;
+    playSfx('attack');
+  });
+
+  function updateAndRenderDojo(dt){
+    if(!screenSelect.classList.contains('active')) return;
+    dojoState.t += dt;
+    if(Math.floor(dojoState.t*8) !== Math.floor((dojoState.t-dt)*8)){
+      dojoState.frame = (dojoState.frame + 1) % 6;
+      dojoState.wepFrame = (dojoState.wepFrame + 1) % 4;
+    }
+    dojoState.orbitAng += dt * 3.5;
+    if(dojoState.heroDash > 0) dojoState.heroDash -= dt;
+    if(dojoState.dummyHit > 0) dojoState.dummyHit -= dt;
+
+    const w = dojoCanvas.width, h = dojoCanvas.height;
+    const bio = BIOMES[currentBiome];
+    dctx.imageSmoothingEnabled = false;
+    dctx.fillStyle = bio.bg;
+    dctx.fillRect(0, 0, w, h);
+
+    for(let y=0; y<h; y+=32){
+      for(let x=0; x<w; x+=32){
+        dctx.fillStyle = ((x+y)/32)%2===0 ? bio.t1 : bio.t2;
+        dctx.fillRect(x, y, 32, 32);
+        dctx.fillStyle = bio.acc + '22';
+        dctx.fillRect(x+14, y+14, 4, 4);
+      }
+    }
+
+    const hx = 105 + (dojoState.heroDash > 0 ? 18 : Math.sin(dojoState.t*2)*8);
+    const hy = 112 + Math.cos(dojoState.t*2)*4;
+    const dx = 250, dy = 112;
+
+    const wep = selectedChar.weapon;
+    const effDmg = Math.round(wep.dmg * getStarMult(selectedChar.id));
+    dojoState.cd -= dt;
+    if(dojoState.cd <= 0){
+      dojoState.cd = Math.max(0.45, wep.cd / 1100);
+      if(wep.type === 'bolt'){
+        for(let i=0; i<wep.count; i++){
+          const sp = (i-(wep.count-1)/2)*0.22;
+          dojoState.bullets.push({ x:hx+16, y:hy, vx:Math.cos(sp)*4.8, vy:Math.sin(sp)*4.8, spin:0 });
+        }
+      } else if(wep.type === 'nova'){
+        dojoState.novas.push({ x:hx, y:hy, r:8, maxR:95, life:0.35 });
+        dojoState.dummyHit = 0.18;
+        dojoState.dmgTexts.push({ x:dx+(Math.random()-0.5)*20, y:dy-28, val:effDmg, life:0.65 });
+      }
+    }
+
+    if(wep.type === 'orbit'){
+      const count = wep.count + (dojoState.heroDash>0 ? 1 : 0);
+      const rad = 58;
+      for(let i=0; i<count; i++){
+        const a = dojoState.orbitAng + i*(Math.PI*2/count);
+        const ox = hx + Math.cos(a)*rad, oy = hy + Math.sin(a)*rad;
+        dctx.save();
+        dctx.translate(ox, oy);
+        if(selectedChar.id === 'ronin') dctx.rotate(a*2.5);
+        const wd = WEAPON_DEFS[selectedChar.id];
+        dctx.drawImage(wd.canvas, dojoState.wepFrame*wd.w, 0, wd.w, wd.h, -18, -18, 36, 36);
+        dctx.restore();
+      }
+      if(Math.random() < 0.08){
+        dojoState.dummyHit = 0.12;
+        dojoState.dmgTexts.push({ x:dx+(Math.random()-0.5)*16, y:dy-28, val:effDmg, life:0.6 });
+      }
+    }
+
+    dojoState.bullets.forEach(b=>{
+      b.x += b.vx; b.y += b.vy; b.spin += 0.35;
+      if(Math.hypot(b.x-dx, b.y-dy) < 24){
+        b.hit = true;
+        dojoState.dummyHit = 0.15;
+        dojoState.dmgTexts.push({ x:dx+(Math.random()-0.5)*18, y:dy-28, val:effDmg, life:0.65 });
+      }
+    });
+    dojoState.bullets = dojoState.bullets.filter(b=>!b.hit && b.x < w+20);
+
+    dojoState.novas.forEach(n=>{
+      n.life -= dt;
+      n.r = n.maxR * (1 - n.life/0.35);
+      dctx.fillStyle = selectedChar.color;
+      for(let i=0; i<16; i++){
+        const a = (i/16)*Math.PI*2;
+        dctx.fillRect(hx + Math.cos(a)*n.r - 2, hy + Math.sin(a)*n.r - 2, 5, 5);
+      }
+      const wd = WEAPON_DEFS[selectedChar.id];
+      for(let j=0; j<4; j++){
+        const a = (j/4)*Math.PI*2 + dojoState.t*6;
+        dctx.drawImage(wd.canvas, dojoState.wepFrame*wd.w, 0, wd.w, wd.h, hx+Math.cos(a)*n.r*0.7-14, hy+Math.sin(a)*n.r*0.7-14, 28, 28);
+      }
+    });
+    dojoState.novas = dojoState.novas.filter(n=>n.life>0);
+
+    dctx.save();
+    if(dojoState.dummyHit > 0) dctx.filter = 'brightness(2.3)';
+    const enmDef = SPRITE_DEFS.knight;
+    dctx.translate(dx, dy);
+    dctx.scale(-1, 1);
+    dctx.drawImage(enmDef.canvas, (dojoState.wepFrame%4)*64, 0, 64, 64, -30, -30, 60, 60);
+    dctx.restore();
+    dctx.fillStyle = '#ffd25f';
+    dctx.font = 'bold 10px monospace';
+    dctx.textAlign = 'center';
+    dctx.fillText('DUMMY LV.99', dx, dy - 34);
+
+    const wd = WEAPON_DEFS[selectedChar.id];
+    dojoState.bullets.forEach(b=>{
+      dctx.save();
+      dctx.translate(b.x, b.y);
+      if(selectedChar.id === 'ninja') dctx.rotate(b.spin);
+      dctx.drawImage(wd.canvas, dojoState.wepFrame*wd.w, 0, wd.w, wd.h, -16, -16, 32, 32);
+      dctx.restore();
+    });
+
+    const hDef = SPRITE_DEFS[selectedChar.sprite];
+    dctx.save();
+    if(dojoState.heroDash > 0){
+      dctx.fillStyle = '#ffffff55';
+      dctx.fillRect(hx-26, hy-26, 52, 52);
+    }
+    dctx.drawImage(hDef.canvas, dojoState.frame*64, 0, 64, 64, hx-32, hy-32, 64, 64);
+    dctx.restore();
+    dctx.fillStyle = '#a8fff0';
+    dctx.fillText('MODO CHIBI', hx, hy - 34);
+
+    dojoState.dmgTexts.forEach(t=>{
+      t.y -= dt * 28;
+      t.life -= dt;
+      dctx.fillStyle = '#ffffff';
+      dctx.font = 'bold 13px monospace';
+      dctx.fillText('-' + t.val, t.x, t.y);
+    });
+    dojoState.dmgTexts = dojoState.dmgTexts.filter(t=>t.life>0);
+
+    cardCanvases.forEach(item=>{
+      const pCtx = item.pCtx;
+      pCtx.imageSmoothingEnabled = false;
+      pCtx.drawImage(PORTRAIT_CANVASES[item.id], 0, 0, 64, 64);
+
+      const chCtx = item.chCtx;
+      chCtx.imageSmoothingEnabled = false;
+      chCtx.clearRect(0, 0, 32, 32);
+      const isAct = (selectedChar && selectedChar.id===item.id) || (hoveredCharId===item.id);
+      const def = SPRITE_DEFS[item.id + '_idle'];
+      const f = isAct ? dojoState.frame : 0;
+      chCtx.drawImage(def.canvas, f*64, 0, 64, 64, 0, 0, 32, 32);
+    });
+  }
+
+  const bgCv = document.getElementById('bgParticles');
+  const bgCtx = bgCv.getContext('2d');
+  const menuStars = Array.from({length:38}, ()=>({
+    x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+    s:Math.random()<0.5?3:5, vy:-0.3-Math.random()*0.6, vx:(Math.random()-0.5)*0.4
+  }));
+  function resizeBg(){ bgCv.width = window.innerWidth; bgCv.height = window.innerHeight; }
+  resizeBg(); window.addEventListener('resize', resizeBg);
+
+  let lastMenuTime = performance.now();
+  function menuLoop(now){
+    const dt = Math.min((now - lastMenuTime)/1000, 0.05);
+    lastMenuTime = now;
+    updateAndRenderDojo(dt);
+    updateAndRenderGachaStage(dt);
+    updateAndRenderSsrCutscene(dt);
+
+    bgCtx.clearRect(0, 0, bgCv.width, bgCv.height);
+    const pCol = BIOMES[currentBiome].acc;
+    menuStars.forEach(st=>{
+      st.x += st.vx; st.y += st.vy;
+      if(st.y < -10) st.y = bgCv.height + 10;
+      if(st.x < -10) st.x = bgCv.width + 10;
+      if(st.x > bgCv.width + 10) st.x = -10;
+      bgCtx.fillStyle = pCol;
+      bgCtx.fillRect(st.x, st.y, st.s, st.s);
+    });
+    requestAnimationFrame(menuLoop);
+  }
+
+  updateGachaHeaderUI();
+  renderCharCards();
+  selectCharacter(CHARACTERS[0]);
+  requestAnimationFrame(menuLoop);
+
+  // ---------- GALERÍA FOTOGRÁFICA DE ARMAS Y ANIMACIONES ----------
+  const galleryCanvases = [];
+  function setupWeaponGallery(){
+    const grid = document.getElementById('galleryGrid');
+    Object.keys(WEAPON_DEFS).forEach(id => {
+      const wd = WEAPON_DEFS[id];
+      const card = document.createElement('div');
+      card.className = 'wep-card';
+      card.innerHTML = `
+        <div class="wep-header">
+          <span class="wep-title">${wd.meta.title}</span>
+          <span class="wep-owner">${wd.meta.owner}</span>
+        </div>
+        <div class="wep-showcase">
+          <div class="wep-live-box"><canvas width="48" height="48"></canvas></div>
+          <div class="wep-sheet-box">
+            <img src="${wd.sheetUrl}" alt="${wd.meta.title}">
+            <div class="wep-sheet-label">Hoja de 4 Fotogramas (F1 · F2 · F3 · F4)</div>
+          </div>
+        </div>
+      `;
+      const cv = card.querySelector('canvas');
+      galleryCanvases.push({ id, cv, ctx: cv.getContext('2d') });
+      grid.appendChild(card);
+    });
+
+    let gFrame = 0, gAngle = 0;
+    setInterval(()=>{
+      if(!screenGallery.classList.contains('active')) return;
+      gFrame = (gFrame + 1) % 4;
+      gAngle += 0.35;
+      galleryCanvases.forEach(item => {
+        const wd = WEAPON_DEFS[item.id];
+        const c = item.ctx;
+        c.imageSmoothingEnabled = false;
+        c.clearRect(0, 0, 48, 48);
+        c.save();
+        c.translate(24, 24);
+        if(item.id === 'ronin' || item.id === 'ninja'){ c.rotate(gAngle); }
+        c.drawImage(wd.canvas, gFrame * wd.w, 0, wd.w, wd.h, -22, -22, 44, 44);
+        c.restore();
+      });
+    }, 150);
+  }
+  setupWeaponGallery();
+
+  document.getElementById('btnOpenGallery').addEventListener('click', ()=>{
+    playSfx('select');
+    screenSelect.classList.remove('active');
+    screenGacha.classList.remove('active');
+    screenGame.classList.remove('active');
+    screenGallery.classList.add('active');
+  });
+  document.getElementById('btnCloseGallery').addEventListener('click', ()=>{
+    playSfx('select');
+    screenGallery.classList.remove('active');
+    screenSelect.classList.add('active');
+  });
+
+  document.getElementById('btnDownloadSheet').addEventListener('click', ()=>{
+    const ids = Object.keys(WEAPON_DEFS);
+    const poster = document.createElement('canvas');
+    poster.width = 780;
+    poster.height = 70 + ids.length * 68;
+    const pctx = poster.getContext('2d');
+    pctx.imageSmoothingEnabled = false;
+    pctx.fillStyle = '#0b0f22';
+    pctx.fillRect(0, 0, poster.width, poster.height);
+    pctx.fillStyle = '#ffd25f';
+    pctx.font = 'bold 18px monospace';
+    pctx.fillText('ANIME SURVIVOR - RETRATOS HD, CHIBIS Y ARMAS PIXEL ART', 35, 38);
+
+    ids.forEach((id, idx)=>{
+      const y = 58 + idx * 66;
+      const wd = WEAPON_DEFS[id];
+      const hd = SPRITE_DEFS[id + '_idle'];
+      pctx.fillStyle = '#161c3a';
+      pctx.fillRect(20, y, 740, 58);
+      pctx.drawImage(PORTRAIT_CANVASES[id], 0, 0, 64, 64, 26, y+3, 52, 52);
+      pctx.drawImage(hd.canvas, 0, 0, 64, 64, 84, y+3, 52, 52);
+      pctx.fillStyle = '#ffffff';
+      pctx.font = 'bold 14px monospace';
+      pctx.fillText(wd.meta.title, 148, y + 24);
+      pctx.fillStyle = '#9aa0c7';
+      pctx.font = '12px monospace';
+      pctx.fillText(wd.meta.owner + ' · ' + wd.meta.type, 148, y + 44);
+      pctx.drawImage(wd.canvas, 0, 0, wd.canvas.width, wd.canvas.height, 540, y + 5, 192, 48);
+    });
+
+    const link = document.createElement('a');
+    link.download = 'RetratosHD_Chibis_y_Armas_PixelArt.png';
+    link.href = poster.toDataURL('image/png');
+    link.click();
+  });
+
+  btnStart.addEventListener('click', ()=>{
+    if(getHeroStars(selectedChar.id) === 0) return;
+    playSfx('start');
+    screenSelect.classList.remove('active');
+    screenGame.classList.add('active');
+    startGame(selectedChar);
+  });
+
+  document.getElementById('btnRetry').addEventListener('click', ()=>{
+    playSfx('start');
+    document.getElementById('gameover').classList.remove('active');
+    startGame(selectedChar);
+  });
+  document.getElementById('btnMenu').addEventListener('click', ()=>{
+    playSfx('select');
+    document.getElementById('gameover').classList.remove('active');
+    screenGame.classList.remove('active');
+    screenSelect.classList.add('active');
+    if(game) game.stop();
+  });
+
+  window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; });
+  window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
+
+  (function setupJoy(){
+    const joy = document.getElementById('joy');
+    const knob = document.getElementById('joyKnob');
+    let active=false, cx=0, cy=0;
+    function start(x,y){ active=true; const r=joy.getBoundingClientRect(); cx=r.left+r.width/2; cy=r.top+r.height/2; }
+    function move(x,y){
+      if(!active) return;
+      let dx=x-cx, dy=y-cy;
+      const max=36;
+      const d=Math.hypot(dx,dy);
+      if(d>max){ dx=dx/d*max; dy=dy/d*max; }
+      knob.style.left=(25+dx)+'px'; knob.style.top=(25+dy)+'px';
+      joyVec.x = dx/max; joyVec.y = dy/max;
+    }
+    function end(){ active=false; joyVec.x=0; joyVec.y=0; knob.style.left='25px'; knob.style.top='25px'; }
+    joy.addEventListener('touchstart', e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); move(t.clientX,t.clientY); e.preventDefault(); }, {passive:false});
+    joy.addEventListener('touchmove', e=>{ const t=e.touches[0]; move(t.clientX,t.clientY); e.preventDefault(); }, {passive:false});
+    joy.addEventListener('touchend', end);
+    joy.addEventListener('mousedown', e=>{ start(e.clientX,e.clientY); move(e.clientX,e.clientY); });
+    window.addEventListener('mousemove', e=>{ if(active) move(e.clientX,e.clientY); });
+    window.addEventListener('mouseup', end);
+  })();
+
+  // ---------- GAME (CON ESCALADO NIVEL 5+ Y PORTALES DE MAZMORRA CADA 5 NIVELES) ----------
+  function startGame(charDef){
+    document.getElementById('hudPortrait').src = IMG[charDef.id + '_portrait'].src;
+    document.getElementById('bossBar').classList.remove('active');
+    const alertBanner = document.getElementById('alertBanner');
+    let alertTimer = 0;
+    function showAlert(msg, duration=4.0){
+      alertBanner.textContent = msg;
+      alertBanner.classList.add('active');
+      alertTimer = duration;
+    }
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const wrap = document.getElementById('gameWrap');
+    function resize(){
+      canvas.width = wrap.clientWidth;
+      canvas.height = wrap.clientHeight;
+      ctx.imageSmoothingEnabled = false;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const WORLD = {w:2000, h:2000};
+    let mapDecor = [];
+    let mapSeed = 918273;
+    function seeded(){ mapSeed=(mapSeed*1664525+1013904223)>>>0; return mapSeed/4294967296; }
+    function buildForestMap(){
+      mapDecor=[]; mapSeed=918273;
+      for(let i=0;i<155;i++){
+        const x=50+seeded()*(WORLD.w-100), y=50+seeded()*(WORLD.h-100);
+        if(Math.hypot(x-WORLD.w/2,y-WORLD.h/2)<150) continue;
+        mapDecor.push({x,y,type:seeded()<0.68?'tree':'bush',size:seeded()<0.22?1.25:1});
+      }
+      mapDecor.push({x:520,y:560,type:'pond',size:1},{x:1470,y:1390,type:'pond',size:1.15});
+      for(let i=0;i<12;i++) mapDecor.push({x:880+(i%4)*32,y:360+Math.floor(i/4)*32,type:'ruin',size:1});
+      mapDecor.sort((a,b)=>a.y - b.y);
+    }
+    buildForestMap();
+
+    let playerFrame = 0, playerFrameTimer = 0;
+    let wepAnimFrame = 0, wepAnimTimer = 0;
+    let runCrystalsEarned = 0;
+
+    function drawAnimatedSprite(spriteKey, frame, dx, dy, w, h){
+      const def = SPRITE_DEFS[spriteKey];
+      if(!def) return false;
+      const src = def.canvas || def.img;
+      if(!src) return false;
+      const f = frame % def.frames;
+      ctx.drawImage(src, f*def.w, 0, def.w, def.h, dx, dy, w, h);
+      return true;
+    }
+
+    function drawWeaponSprite(heroId, frame, dx, dy, w, h){
+      const wd = WEAPON_DEFS[heroId];
+      if(!wd) return;
+      const f = frame % wd.frames;
+      ctx.drawImage(wd.canvas, f*wd.w, 0, wd.w, wd.h, dx, dy, w, h);
+    }
+
+    const starMult = getStarMult(charDef.id);
+    const boostedHp = Math.round(charDef.hp * starMult);
+
+    const player = {
+      id: charDef.id,
+      x: WORLD.w/2, y: WORLD.h/2, r:16, color:charDef.color,
+      speed: charDef.speed, maxHp: boostedHp, hp: boostedHp,
+      dmgMult: starMult, cdMult:1, rangeMult:1, countBonus:0, regen:0, magnet:1,
+      xp:0, level:1, xpToNext:10, cdTimer:0, invuln:0,
+      weapon: Object.assign({}, charDef.weapon), dashCd:0, dashTime:0, facing:1, moving:false,
+      atkSwingTimer:0
+    };
+
+    // ---------- ESTADO DE PORTALES Y MAZMORRA CADA 5 NIVELES ----------
+    let activePortal = null; // { x, y, r:26, type:'enter'|'exit', tier }
+    let inDungeon = false;
+    let dungeonTier = 0;
+    let dungeonKills = 0;
+    let dungeonTargetKills = 20;
+    let dungeonBossSpawned = false;
+    let savedOverworldPos = { x: WORLD.w/2, y: WORLD.h/2 };
+    const DUNGEON_BOUNDS = { x1: 550, y1: 650, x2: 1450, y2: 1350 };
+    let dungeonHazards = [];
+
+    let enemies = [];
+    let bullets = [];
+    let gems = [];
+    let particles = [];
+    let slashFxList = [];
+    let floatTexts = [];
+    let elapsed = 0;
+    let spawnTimer = 0;
+    let running = true;
+    let paused = false;
+
+    // ---------- NUEVO ESCALADO EXPONENCIAL POR NIVEL (ESPECIALMENTE NIVEL 5+) Y MAZMORRA ----------
+    function enemyStatsForState(){
+      const mins = elapsed / 60;
+      const lv = player.level;
+      // A partir de nivel 5, el multiplicador de fuerza, vida y armadura crece fuerte cada nivel
+      const postLv5 = Math.max(0, lv - 4);
+      const levelHpMult = 1 + (lv - 1) * 0.16 + Math.pow(postLv5, 1.45) * 0.38;
+      const levelDmgMult = 1 + (lv - 1) * 0.12 + Math.pow(postLv5, 1.25) * 0.25;
+      const dngHpMult = inDungeon ? (2.3 + dungeonTier * 0.65) : (1 + dungeonTier * 0.35);
+      const dngDmgMult = inDungeon ? (1.65 + dungeonTier * 0.35) : (1 + dungeonTier * 0.2);
+
+      // Armadura (reducción de daño porcentual de 0% hasta 65% en niveles altos y mazmorras)
+      const baseArmor = postLv5 > 0 ? Math.min(0.50, postLv5 * 0.045) : 0;
+      const armor = Math.min(0.68, baseArmor + (inDungeon ? 0.18 : 0));
+
+      return {
+        hp: (24 + mins * 14) * levelHpMult * dngHpMult,
+        speed: (0.95 + Math.min(mins * 0.06, 0.7) + postLv5 * 0.045) * (inDungeon ? 1.22 : 1),
+        dmg: (9 + mins * 2.8) * levelDmgMult * dngDmgMult,
+        armor: armor,
+        spawnEvery: Math.max(0.20, (1.05 - mins * 0.05 - postLv5 * 0.04) * (inDungeon ? 0.65 : 1))
+      };
+    }
+
+    const ENEMY_TYPES = [
+      {spriteKey:'fire', hpMult:0.85, speedMult:1.3},
+      {spriteKey:'ghost', hpMult:0.95, speedMult:1.15},
+      {spriteKey:'zombie', hpMult:1.65, speedMult:0.75},
+      {spriteKey:'knight', hpMult:2.2, speedMult:0.7, bonusArmor:0.12},
+    ];
+
+    function spawnPortalForDungeon(){
+      if(activePortal || inDungeon) return;
+      const ang = Math.random() * Math.PI * 2;
+      const px = Math.max(120, Math.min(WORLD.w-120, player.x + Math.cos(ang)*190));
+      const py = Math.max(120, Math.min(WORLD.h-120, player.y + Math.sin(ang)*190));
+      activePortal = { x: px, y: py, r: 30, type: 'enter', tier: Math.floor(player.level / 5) };
+      playSfx('portal');
+      showAlert(`🌀 ¡PORTAL ABISMAL NV.${player.level} ABIERTO! Entra al portal violeta para desafiar la Mazmorra`, 6.0);
+    }
+
+    function enterDungeon(tier){
+      playSfx('portal');
+      inDungeon = true;
+      dungeonTier = tier;
+      dungeonKills = 0;
+      dungeonTargetKills = 18 + tier * 6;
+      dungeonBossSpawned = false;
+      activePortal = null;
+      savedOverworldPos = { x: player.x, y: player.y };
+
+      // Teletransportar al centro de la cámara de la Mazmorra y limpiar enemigos del bosque
+      enemies = [];
+      bullets = [];
+      activeBoss = null;
+      document.getElementById('bossBar').classList.remove('active');
+      player.x = (DUNGEON_BOUNDS.x1 + DUNGEON_BOUNDS.x2) / 2;
+      player.y = (DUNGEON_BOUNDS.y1 + DUNGEON_BOUNDS.y2) / 2;
+      player.invuln = 1.5;
+
+      // Generar fosos de lava y pilares dentro de la Mazmorra
+      dungeonHazards = [
+        { x: DUNGEON_BOUNDS.x1 + 170, y: DUNGEON_BOUNDS.y1 + 150, w: 96, h: 64, type:'lava' },
+        { x: DUNGEON_BOUNDS.x2 - 260, y: DUNGEON_BOUNDS.y1 + 150, w: 96, h: 64, type:'lava' },
+        { x: DUNGEON_BOUNDS.x1 + 170, y: DUNGEON_BOUNDS.y2 - 210, w: 96, h: 64, type:'lava' },
+        { x: DUNGEON_BOUNDS.x2 - 260, y: DUNGEON_BOUNDS.y2 - 210, w: 96, h: 64, type:'lava' },
+      ];
+
+      document.getElementById('mapLabel').textContent = `🌋 MAZMORRA ABISMAL (PISO ${tier})`;
+      showAlert(`🔥 ¡MAZMORRA PISO ${tier}! Enemigos Blindados · Derrota ${dungeonTargetKills} Élites y al Guardián`, 5.5);
+    }
+
+    function exitDungeonVictory(){
+      playSfx('gacha_ssr');
+      inDungeon = false;
+      activePortal = null;
+      enemies = [];
+      activeBoss = null;
+      document.getElementById('bossBar').classList.remove('active');
+      player.x = savedOverworldPos.x;
+      player.y = savedOverworldPos.y;
+      player.hp = player.maxHp;
+      player.dmgMult *= 1.25;
+      const bonusCry = 250 * dungeonTier;
+      runCrystalsEarned += bonusCry;
+      gachaData.crystals += bonusCry;
+      saveGachaData();
+      document.getElementById('runCrystalsText').textContent = `+${runCrystalsEarned} 💎`;
+      document.getElementById('mapLabel').textContent = BIOMES[currentBiome].label;
+      showAlert(`🏆 ¡MAZMORRA SUPERADA! +${bonusCry} 💎 Cristales · Vida 100% · Bendición Daño +25%`, 6.0);
+    }
+
+    function spawnEnemy(){
+      const stats = enemyStatsForState();
+      const type = ENEMY_TYPES[Math.floor(Math.random()*ENEMY_TYPES.length)];
+      const angle = Math.random()*Math.PI*2;
+      const dist = inDungeon ? 290 : 420;
+      let ex = player.x + Math.cos(angle)*dist;
+      let ey = player.y + Math.sin(angle)*dist;
+      if(inDungeon){
+        ex = Math.max(DUNGEON_BOUNDS.x1 + 40, Math.min(DUNGEON_BOUNDS.x2 - 40, ex));
+        ey = Math.max(DUNGEON_BOUNDS.y1 + 40, Math.min(DUNGEON_BOUNDS.y2 - 40, ey));
+      }
+      const isElite = inDungeon || (player.level >= 5 && Math.random() < Math.min(0.75, (player.level - 4) * 0.12));
+      const eliteMult = isElite ? 1.55 : 1;
+      const totalArmor = Math.min(0.72, stats.armor + (type.bonusArmor || 0) + (isElite ? 0.10 : 0));
+
+      enemies.push({
+        x:ex, y:ey, r: isElite ? 17 : 14, spriteKey:type.spriteKey, frame:0, frameTimer:Math.random()*0.4,
+        hp: stats.hp * type.hpMult * eliteMult,
+        maxHp: stats.hp * type.hpMult * eliteMult,
+        speed: stats.speed * type.speedMult * (isElite ? 1.1 : 1),
+        dmg: stats.dmg * (isElite ? 1.25 : 1),
+        armor: totalArmor,
+        isElite: isElite,
+        hitFlash:0, facing:1
+      });
+    }
+
+    function addXpGem(x,y,val){ gems.push({x,y,val, r:6}); }
+
+    function damagePlayer(amount){
+      if(player.invuln>0) return;
+      player.hp -= amount;
+      player.invuln = 0.5;
+      const hpOuter = document.getElementById('hpbarOuter');
+      hpOuter.classList.remove('flash'); void hpOuter.offsetWidth; hpOuter.classList.add('flash');
+      if(player.hp<=0){ player.hp=0; endGame(); }
+    }
+
+    function gainXp(v){
+      player.xp += v;
+      if(player.xp >= player.xpToNext){
+        player.xp -= player.xpToNext;
+        player.level += 1;
+        player.xpToNext = Math.round(player.xpToNext*1.25+4);
+        playSfx('start');
+        // Cada 5 niveles exactos se abre el Portal hacia la Mazmorra
+        if(player.level % 5 === 0){
+          spawnPortalForDungeon();
+        }
+        openLevelUp();
+      }
+    }
+
+    function openLevelUp(){
+      paused = true;
+      const panel = document.getElementById('levelup');
+      const grid = document.getElementById('upgradeGrid');
+      grid.innerHTML='';
+      const pool = [...UPGRADE_POOL].sort(()=>Math.random()-0.5).slice(0,3);
+      pool.forEach(u=>{
+        const el = document.createElement('div');
+        el.className='upg';
+        el.innerHTML = `<div class="uicon">${u.icon}</div><div class="uname">${u.name}</div><div class="udesc">${u.desc}</div>`;
+        el.addEventListener('click', ()=>{
+          playSfx('select');
+          u.apply(player);
+          panel.classList.remove('active');
+          paused = false;
+        });
+        grid.appendChild(el);
+      });
+      panel.classList.add('active');
+    }
+
+    function endGame(){
+      running = false;
+      const mins = Math.floor(elapsed/60), secs = Math.floor(elapsed%60);
+      document.getElementById('goStats').textContent =
+        `Sobreviviste ${mins}:${secs.toString().padStart(2,'0')} · Nivel ${player.level} · Mazmorras superadas: ${dungeonTier} · +${runCrystalsEarned} 💎`;
+      document.getElementById('gameover').classList.add('active');
+    }
+
+    function spawnSlashArc(x, y, ang){
+      slashFxList.push({ x, y, ang, frame:0, timer:0 });
+    }
+
+    function fireWeapon(dt){
+      player.cdTimer -= dt*1000;
+      if(player.cdTimer>0) return;
+      const w = player.weapon;
+      const effCd = w.cd*player.cdMult;
+      player.cdTimer = effCd;
+      const count = w.count + player.countBonus;
+
+      if(w.type==='bolt'){
+        let target = nearestEnemy(player.x, player.y, w.range*player.rangeMult);
+        if(!target) return;
+        const baseAng = Math.atan2(target.y-player.y, target.x-player.x);
+        player.atkSwingTimer = 0.22;
+        playSfx('attack');
+        spawnSlashArc(player.x + Math.cos(baseAng)*22, player.y + Math.sin(baseAng)*22, baseAng);
+        for(let i=0;i<count;i++){
+          const spread = (i-(count-1)/2)*0.22;
+          const ang = baseAng + spread;
+          bullets.push({
+            x:player.x, y:player.y, vx:Math.cos(ang)*6.8, vy:Math.sin(ang)*6.8,
+            dmg: w.dmg*player.dmgMult, r:10, life:1.25, color:player.color, ang:ang, spin:0
+          });
+        }
+      } else if(w.type==='nova'){
+        const r = w.range*player.rangeMult;
+        player.atkSwingTimer = 0.28;
+        playSfx('attack');
+        spawnNovaFx(player.x, player.y, r, player.id);
+        spawnSlashArc(player.x + player.facing*20, player.y, player.facing > 0 ? 0 : Math.PI);
+        enemies.forEach(en=>{
+          const d = Math.hypot(en.x-player.x, en.y-player.y);
+          if(d < r){ hitEnemy(en, w.dmg*player.dmgMult*count); }
+        });
+      }
+    }
+
+    let orbitAngle = 0;
+    function orbitTick(dt){
+      if(player.weapon.type!=='orbit') return;
+      orbitAngle += dt*3.4;
+      const count = player.weapon.count + player.countBonus;
+      const radius = player.weapon.range*player.rangeMult*0.55;
+      for(let i=0;i<count;i++){
+        const a = orbitAngle + (i*(Math.PI*2/count));
+        const ox = player.x + Math.cos(a)*radius;
+        const oy = player.y + Math.sin(a)*radius;
+        if(Math.random() < 0.35){
+          particles.push({x:ox, y:oy, vx:(Math.random()-0.5)*1.2, vy:(Math.random()-0.5)*1.2, life:0.22, color:player.color});
+        }
+        enemies.forEach(en=>{
+          if(en._orbitCd>0) return;
+          const d = Math.hypot(en.x-ox, en.y-oy);
+          if(d < en.r+14){
+            hitEnemy(en, player.weapon.dmg*player.dmgMult*0.2);
+            en._orbitCd = 0.15;
+          }
+        });
+      }
+    }
+
+    const BOSS_TYPES = [
+      {spriteKey:'devil', name:'Señor Abismal Carmesí', hpBase:1400, speed:1.15, dmg:24, r:32, telegraph:0.55, atkRange:155, atkCd:2.2},
+      {spriteKey:'ghost', name:'Archiespectro del Vacío', hpBase:1750, speed:1.25, dmg:22, r:30, telegraph:0.48, atkRange:135, atkCd:2.0},
+      {spriteKey:'knight', name:'Verdugo Acorazado', hpBase:2200, speed:1.1, dmg:28, r:32, telegraph:0.6, atkRange:170, atkCd:2.4},
+    ];
+    let bossSpawnTimer = 60;
+    let bossIndex = 0;
+    let activeBoss = null;
+
+    function spawnBoss(isDungeonWarden=false){
+      const def = BOSS_TYPES[bossIndex % BOSS_TYPES.length];
+      bossIndex++;
+      const stats = enemyStatsForState();
+      const angle = Math.random()*Math.PI*2;
+      const dist = isDungeonWarden ? 240 : 480;
+      let bx = player.x + Math.cos(angle)*dist;
+      let by = player.y + Math.sin(angle)*dist;
+      if(inDungeon){
+        bx = Math.max(DUNGEON_BOUNDS.x1 + 80, Math.min(DUNGEON_BOUNDS.x2 - 80, bx));
+        by = Math.max(DUNGEON_BOUNDS.y1 + 80, Math.min(DUNGEON_BOUNDS.y2 - 80, by));
+      }
+      const bossHp = def.hpBase * (1 + Math.max(0, player.level - 1) * 0.45) * (isDungeonWarden ? 1.85 * dungeonTier : 1);
+      activeBoss = {
+        x:bx, y:by, r:def.r, spriteKey:def.spriteKey, frame:0, frameTimer:0,
+        name: isDungeonWarden ? `👑 GUARDIÁN PISO ${dungeonTier}: ${def.name}` : def.name,
+        isBoss:true, isDungeonWarden: isDungeonWarden,
+        hp: bossHp, maxHp: bossHp,
+        speed: def.speed * (isDungeonWarden ? 1.2 : 1),
+        dmg: stats.dmg * 1.65,
+        armor: Math.min(0.65, stats.armor + 0.15),
+        hitFlash:0,
+        atkCd: def.atkCd, atkTimer: 1.4, telegraph: def.telegraph, atkRange: def.atkRange,
+        state:'chase', stateTimer:0, facing:1
+      };
+      enemies.push(activeBoss);
+      document.getElementById('bossBar').classList.add('active');
+      document.getElementById('bossBarName').textContent = `${activeBoss.name} [Armadura ${Math.round(activeBoss.armor*100)}%]`;
+      spawnNovaFx(bx,by,85, player.id);
+    }
+
+    function updateBoss(b, dt){
+      b.atkTimer -= dt;
+      if(b.hitFlash>0) b.hitFlash -= dt;
+      b.frameTimer += dt;
+      if(b.frameTimer>0.15){ b.frameTimer=0; b.frame=(b.frame+1)%4; }
+      const d = Math.hypot(player.x-b.x, player.y-b.y) || 1;
+      b.facing = (player.x >= b.x) ? 1 : -1;
+      if(b.state==='chase'){
+        if(d > b.atkRange*0.35){
+          b.x += (player.x-b.x)/d*b.speed*dt*60;
+          b.y += (player.y-b.y)/d*b.speed*dt*60;
+        }
+        if(d < b.atkRange && b.atkTimer<=0){
+          b.state='telegraph'; b.stateTimer=b.telegraph;
+        }
+        if(d < b.r+player.r){ damagePlayer(b.dmg*0.4); }
+      } else if(b.state==='telegraph'){
+        b.stateTimer -= dt;
+        if(b.stateTimer<=0){
+          b.state='attack';
+          const range = b.atkRange;
+          const dd = Math.hypot(player.x-b.x, player.y-b.y);
+          if(dd < range){ damagePlayer(b.dmg); }
+          spawnNovaFx(b.x,b.y,range, player.id);
+          b.atkTimer = b.atkCd;
+          b.stateTimer = 0.25;
+        }
+      } else if(b.state==='attack'){
+        b.stateTimer -= dt;
+        if(b.stateTimer<=0){ b.state='chase'; }
+      }
+      document.getElementById('bossBarInner').style.width = (b.hp/b.maxHp*100)+'%';
+    }
+
+    function nearestEnemy(x,y,maxR){
+      let best=null, bestD=maxR;
+      enemies.forEach(en=>{
+        const d = Math.hypot(en.x-x, en.y-y);
+        if(d<bestD){ bestD=d; best=en; }
+      });
+      return best;
+    }
+
+    let hitFxList = [];
+    function spawnHitFx(x,y){ hitFxList.push({x,y,frame:0,timer:0}); }
+    function hitEnemy(en, rawDmg){
+      // Aplicar reducción por Armadura (Resistencia post-nivel 5 y mazmorra)
+      const armor = en.armor || 0;
+      const finalDmg = Math.max(1, rawDmg * (1 - armor));
+      en.hp -= finalDmg;
+      en.hitFlash = 0.1;
+      spawnHitFx(en.x, en.y - (en.isBoss?20:8));
+
+      if(Math.random() < 0.45){
+        floatTexts.push({
+          x: en.x + (Math.random()-0.5)*16,
+          y: en.y - 18,
+          text: Math.round(finalDmg) + (armor >= 0.25 ? '🛡️' : ''),
+          col: armor >= 0.25 ? '#c49bff' : '#ffffff',
+          life: 0.45
+        });
+      }
+
+      if(en.hp<=0 && !en._dead){
+        en._dead = true;
+        addXpGem(en.x, en.y, en.isBoss ? 75 : (inDungeon ? 6 : 3));
+        const cryReward = en.isBoss ? 140 : (inDungeon ? 10 : 5);
+        runCrystalsEarned += cryReward;
+        gachaData.crystals += cryReward;
+        saveGachaData();
+        document.getElementById('runCrystalsText').textContent = `+${runCrystalsEarned} 💎`;
+        spawnDeathFx(en.x, en.y);
+
+        if(inDungeon){
+          dungeonKills++;
+          if(dungeonKills >= dungeonTargetKills && !dungeonBossSpawned){
+            dungeonBossSpawned = true;
+            spawnBoss(true);
+            showAlert(`👹 ¡EL GUARDIÁN DE LA MAZMORRA HA APARECIDO! Derótalo para abrir la salida`, 5.0);
+          }
+          if(en.isDungeonWarden){
+            // Abrir Portal Dorado de Salida en el centro de la Mazmorra
+            activePortal = {
+              x: (DUNGEON_BOUNDS.x1 + DUNGEON_BOUNDS.x2)/2,
+              y: (DUNGEON_BOUNDS.y1 + DUNGEON_BOUNDS.y2)/2,
+              r: 32,
+              type: 'exit',
+              tier: dungeonTier
+            };
+            playSfx('gacha_ssr');
+            showAlert(`✨ ¡GUARDIÁN DERROTADO! Entra al Portal Dorado para reclamar tu recompensa`, 6.0);
+          }
+        }
+      }
+    }
+
+    let novaFx = [];
+    function spawnNovaFx(x,y,r,heroId){ novaFx.push({x,y,r:10,life:0.36,maxR:r,heroId}); }
+    function spawnDeathFx(x,y){
+      for(let i=0;i<8;i++){
+        particles.push({x,y, vx:(Math.random()-0.5)*3.5, vy:(Math.random()-0.5)*3.5, life:0.45, color:i%2===0?'#fff':'#ffd25f'});
+      }
+    }
+
+    const cam = {x:0,y:0};
+
+    let last = performance.now();
+    function loop(now){
+      if(!running){ return; }
+      const dt = Math.min((now-last)/1000, 0.05);
+      last = now;
+      if(!paused){
+        update(dt);
+      }
+      render();
+      game.raf = requestAnimationFrame(loop);
+    }
+
+    function update(dt){
+      elapsed += dt;
+      if(alertTimer > 0){
+        alertTimer -= dt;
+        if(alertTimer <= 0) alertBanner.classList.remove('active');
+      }
+
+      document.getElementById('timerText').textContent =
+        Math.floor(elapsed/60)+':'+Math.floor(elapsed%60).toString().padStart(2,'0');
+      document.getElementById('levelText').textContent = 'Nv. '+player.level;
+
+      const curStats = enemyStatsForState();
+      const armorPct = Math.round(curStats.armor * 100);
+      document.getElementById('threatText').textContent = inDungeon
+        ? `🌋 Mazmorra P${dungeonTier} (${ Math.min(dungeonKills, dungeonTargetKills) }/${dungeonTargetKills}) · Blindaje ${armorPct}%`
+        : (player.level >= 5 ? `🔥 Horda Élite · Blindaje ${armorPct}%` : `Amenaza: Normal`);
+
+      let dx=0, dy=0;
+      if(keys['w']||keys['arrowup']) dy-=1;
+      if(keys['s']||keys['arrowdown']) dy+=1;
+      if(keys['a']||keys['arrowleft']) dx-=1;
+      if(keys['d']||keys['arrowright']) dx+=1;
+      dx += joyVec.x; dy += joyVec.y;
+      const len = Math.hypot(dx,dy);
+      if(len>0){ dx/=len; dy/=len; player.moving=true; if(Math.abs(dx)>0.05) player.facing=dx>0?1:-1; } else player.moving=false;
+      if(player.dashCd>0) player.dashCd-=dt;
+      if(player.dashTime>0) player.dashTime-=dt;
+      if(player.atkSwingTimer>0) player.atkSwingTimer-=dt;
+      if(keys[' '] && player.dashCd<=0 && len>0){ player.dashTime=0.16; player.dashCd=1.15; playSfx('attack'); }
+      const sprint = keys['shift'] ? 1.45 : 1;
+      const dash = player.dashTime>0 ? 3.1 : 1;
+      player.x += dx*player.speed*sprint*dash*dt*60;
+      player.y += dy*player.speed*sprint*dash*dt*60;
+
+      // Límites de movimiento (Cerrados entre muros si estás en la Mazmorra)
+      if(inDungeon){
+        player.x = Math.max(DUNGEON_BOUNDS.x1 + 24, Math.min(DUNGEON_BOUNDS.x2 - 24, player.x));
+        player.y = Math.max(DUNGEON_BOUNDS.y1 + 24, Math.min(DUNGEON_BOUNDS.y2 - 24, player.y));
+        // Daño por pisar lava en la Mazmorra (si no estás haciendo dash)
+        if(player.dashTime <= 0){
+          dungeonHazards.forEach(hz=>{
+            if(player.x > hz.x && player.x < hz.x + hz.w && player.y > hz.y && player.y < hz.y + hz.h){
+              damagePlayer(6 + dungeonTier * 3);
+            }
+          });
+        }
+      } else {
+        player.x = Math.max(20, Math.min(WORLD.w-20, player.x));
+        player.y = Math.max(20, Math.min(WORLD.h-20, player.y));
+      }
+
+      // Colisión con el Portal (Entrar o Salir de la Mazmorra)
+      if(activePortal){
+        const pd = Math.hypot(player.x - activePortal.x, player.y - activePortal.y);
+        if(pd < player.r + activePortal.r){
+          if(activePortal.type === 'enter'){
+            enterDungeon(activePortal.tier);
+          } else {
+            exitDungeonVictory();
+          }
+        }
+      }
+
+      if(player.invuln>0) player.invuln -= dt;
+      if(player.regen>0){
+        player._regenAcc = (player._regenAcc||0) + player.regen*dt;
+        if(player._regenAcc>=1){ player.hp = Math.min(player.maxHp, player.hp+1); player._regenAcc-=1; }
+      }
+
+      spawnTimer -= dt;
+      if(spawnTimer<=0){
+        spawnEnemy();
+        spawnTimer = curStats.spawnEvery;
+      }
+
+      if(!inDungeon){
+        bossSpawnTimer -= dt;
+        if(bossSpawnTimer<=0 && !activeBoss){
+          spawnBoss(false);
+          bossSpawnTimer = 999999;
+        }
+      }
+      if(activeBoss){
+        if(activeBoss._dead || activeBoss.hp<=0){
+          activeBoss = null;
+          document.getElementById('bossBar').classList.remove('active');
+          bossSpawnTimer = 65;
+        } else {
+          updateBoss(activeBoss, dt);
+        }
+      }
+
+      enemies.forEach(en=>{
+        if(en.isBoss) return;
+        if(en._orbitCd>0) en._orbitCd -= dt;
+        if(en.hitFlash>0) en.hitFlash -= dt;
+        en.frameTimer += dt;
+        if(en.frameTimer>0.15){ en.frameTimer=0; en.frame=(en.frame+1)%4; }
+        const d = Math.hypot(player.x-en.x, player.y-en.y) || 1;
+        en.facing = (player.x >= en.x) ? 1 : -1;
+        en.x += (player.x-en.x)/d*en.speed*dt*60;
+        en.y += (player.y-en.y)/d*en.speed*dt*60;
+        if(d < en.r+player.r){
+          damagePlayer(en.dmg*0.42);
+        }
+      });
+      enemies = enemies.filter(en=>!en._dead);
+
+      fireWeapon(dt);
+      orbitTick(dt);
+
+      bullets.forEach(b=>{
+        b.x += b.vx*dt*60; b.y += b.vy*dt*60; b.life -= dt;
+        b.spin += dt * 14;
+        if(Math.random() < 0.45){
+          particles.push({x:b.x, y:b.y, vx:(Math.random()-0.5)*1, vy:(Math.random()-0.5)*1, life:0.18, color:b.color});
+        }
+        enemies.forEach(en=>{
+          if(b._used) return;
+          const d = Math.hypot(en.x-b.x, en.y-b.y);
+          if(d < en.r+b.r){ hitEnemy(en, b.dmg); b._used=true; }
+        });
+      });
+      bullets = bullets.filter(b=>b.life>0 && !b._used);
+
+      gems.forEach(g=>{
+        const d = Math.hypot(player.x-g.x, player.y-g.y);
+        const magnetR = 70*player.magnet;
+        if(d < magnetR){
+          const spd = Math.max(3, (magnetR-d)/10);
+          g.x += (player.x-g.x)/d*spd;
+          g.y += (player.y-g.y)/d*spd;
+        }
+        if(d < player.r+g.r){ gainXp(g.val); g._got=true; }
+      });
+      gems = gems.filter(g=>!g._got);
+
+      particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.life-=dt; });
+      particles = particles.filter(p=>p.life>0);
+      floatTexts.forEach(ft=>{ ft.y -= dt*24; ft.life -= dt; });
+      floatTexts = floatTexts.filter(ft=>ft.life>0);
+      novaFx.forEach(n=>{ n.life-=dt; n.r = n.maxR*(1-n.life/0.36); });
+      novaFx = novaFx.filter(n=>n.life>0);
+      hitFxList.forEach(h=>{ h.timer += dt; if(h.timer>0.04){ h.timer=0; h.frame++; } });
+      hitFxList = hitFxList.filter(h=>h.frame<4);
+      slashFxList.forEach(s=>{ s.timer += dt; if(s.timer>0.045){ s.timer=0; s.frame++; } });
+      slashFxList = slashFxList.filter(s=>s.frame<4);
+
+      playerFrameTimer += dt;
+      const animSpeed = player.moving ? 0.09 : 0.2;
+      if(playerFrameTimer > animSpeed){ playerFrameTimer=0; playerFrame++; }
+
+      wepAnimTimer += dt;
+      if(wepAnimTimer > 0.08){ wepAnimTimer=0; wepAnimFrame = (wepAnimFrame+1)%4; }
+
+      document.getElementById('hpText').textContent = `❤ ${Math.ceil(player.hp)}/${player.maxHp}`;
+      document.getElementById('hpbarInner').style.width = (player.hp/player.maxHp*100)+'%';
+      document.getElementById('xpbarInner').style.width = (player.xp/player.xpToNext*100)+'%';
+
+      cam.x = Math.round(player.x - canvas.width/2);
+      cam.y = Math.round(player.y - canvas.height/2);
+    }
+
+    function render(){
+      const bio = BIOMES[currentBiome];
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = inDungeon ? '#0c0814' : bio.bg;
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      function toScreen(x,y){ return [Math.round(x-cam.x), Math.round(y-cam.y)]; }
+
+      if(inDungeon){
+        // Renderizar Cámara de Mazmorra (Baldosas de piedra volcánica, fosos de lava y muros)
+        const tile = 48;
+        for(let wy = DUNGEON_BOUNDS.y1; wy < DUNGEON_BOUNDS.y2; wy += tile){
+          for(let wx = DUNGEON_BOUNDS.x1; wx < DUNGEON_BOUNDS.x2; wx += tile){
+            const [sx, sy] = toScreen(wx, wy);
+            const checker = ((wx+wy)/tile)%2 === 0;
+            ctx.fillStyle = checker ? '#1f162b' : '#261b36';
+            ctx.fillRect(sx, sy, tile, tile);
+            ctx.strokeStyle = '#120c1a';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sx, sy, tile, tile);
+          }
+        }
+        // Fosos de Lava Burbujeante
+        const lavaPulse = Math.floor(elapsed*4)%2;
+        dungeonHazards.forEach(hz=>{
+          const [hx, hy] = toScreen(hz.x, hz.y);
+          ctx.fillStyle = '#4a1212';
+          ctx.fillRect(hx-4, hy-4, hz.w+8, hz.h+8);
+          ctx.fillStyle = lavaPulse ? '#ff3b1f' : '#e02400';
+          ctx.fillRect(hx, hy, hz.w, hz.h);
+          ctx.fillStyle = '#ffd25f';
+          ctx.fillRect(hx + 14 + lavaPulse*8, hy + 16, 18, 8);
+          ctx.fillRect(hx + 52 - lavaPulse*8, hy + 36, 22, 8);
+        });
+        // Muros perimetrales de la Mazmorra con antorchas
+        const [bx1, by1] = toScreen(DUNGEON_BOUNDS.x1, DUNGEON_BOUNDS.y1);
+        const bw = DUNGEON_BOUNDS.x2 - DUNGEON_BOUNDS.x1;
+        const bh = DUNGEON_BOUNDS.y2 - DUNGEON_BOUNDS.y1;
+        ctx.strokeStyle = '#5c4378';
+        ctx.lineWidth = 14;
+        ctx.strokeRect(bx1, by1, bw, bh);
+        ctx.strokeStyle = '#ff3b5c';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bx1+7, by1+7, bw-14, bh-14);
+      } else {
+        // Suelo del mundo exterior
+        const tile=48, ox=(( -cam.x % tile)+tile)%tile, oy=(( -cam.y % tile)+tile)%tile;
+        for(let y=oy-tile; y<canvas.height+tile; y+=tile){
+          for(let x=ox-tile; x<canvas.width+tile; x+=tile){
+            const wx=Math.floor((x+cam.x)/tile), wy=Math.floor((y+cam.y)/tile);
+            const n=Math.abs((wx*17+wy*31+wx*wy*7)%13);
+            ctx.fillStyle=n<3?bio.t1:n<6?bio.t2:n<9?bio.t3:bio.t4;
+            ctx.fillRect(x,y,tile,tile);
+            ctx.fillStyle='#3d7d5255';
+            ctx.fillRect(x+8, y+10, 4, 4);
+            ctx.fillRect(x+12, y+6, 4, 4);
+            if(n===4){
+              ctx.fillStyle=bio.acc;
+              ctx.fillRect(x+20, y+18, 4, 4);
+            }
+          }
+        }
+
+        mapDecor.forEach(d=>{
+          const [sx,sy]=toScreen(d.x,d.y);
+          if(sx < -120||sy < -120||sx>canvas.width+120||sy>canvas.height+120) return;
+          if(d.type==='pond'){
+            const pw = Math.round(130*d.size), ph = Math.round(84*d.size);
+            ctx.fillStyle='#5c5346'; ctx.fillRect(sx-pw/2-4, sy-ph/2-4, pw+8, ph+8);
+            ctx.fillStyle='#163d57'; ctx.fillRect(sx-pw/2, sy-ph/2, pw, ph);
+            ctx.fillStyle='#24648c'; ctx.fillRect(sx-pw/2+6, sy-ph/2+6, pw-12, ph-12);
+            const waveShift = Math.floor(elapsed*3)%2 * 6;
+            ctx.fillStyle='#73d2de';
+            ctx.fillRect(sx-30+waveShift, sy-12, 24, 4);
+            ctx.fillRect(sx+4-waveShift, sy+10, 28, 4);
+            return;
+          }
+          if(d.type==='ruin'){
+            ctx.drawImage(ENV_SPRITES.ruin, sx-20, sy-24, 40, 48);
+            return;
+          }
+          if(d.type==='tree'){
+            const tw = Math.round(64*d.size), th = Math.round(80*d.size);
+            ctx.drawImage(ENV_SPRITES.tree, sx-tw/2, sy-th+16, tw, th);
+          } else {
+            const bw = Math.round(32*d.size);
+            ctx.drawImage(ENV_SPRITES.bush, sx-bw/2, sy-bw/2, bw, bw);
+          }
+        });
+      }
+
+      // Dibujar Portal Abismal (Entrada o Salida) en Pixel Art
+      if(activePortal){
+        const [psx, psy] = toScreen(activePortal.x, activePortal.y);
+        const isExit = activePortal.type === 'exit';
+        const cOuter = isExit ? '#ff9f1c' : '#7c4dff';
+        const cMid   = isExit ? '#ffd25f' : '#c49bff';
+        const cCore  = '#ffffff';
+
+        // Remolino pixelado giratorio
+        ctx.save();
+        ctx.translate(psx, psy);
+        ctx.rotate(elapsed * 3.5);
+        ctx.fillStyle = cOuter;
+        ctx.fillRect(-30, -30, 60, 60);
+        ctx.rotate(elapsed * -6);
+        ctx.fillStyle = cMid;
+        ctx.fillRect(-22, -22, 44, 44);
+        ctx.fillStyle = cCore;
+        ctx.fillRect(-10, -10, 20, 20);
+        ctx.restore();
+
+        ctx.fillStyle = '#ffd25f';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(isExit ? '✨ SALIDA DE MAZMORRA ✨' : `🌀 PORTAL MAZMORRA P${activePortal.tier}`, psx, psy - 40);
+      }
+
+      gems.forEach(g=>{
+        const [sx,sy] = toScreen(g.x,g.y);
+        ctx.fillStyle = '#0d1021';
+        ctx.fillRect(sx-6, sy-8, 12, 16);
+        ctx.fillStyle = g.val >= 15 ? '#ff9f1c' : '#2998ff';
+        ctx.fillRect(sx-4, sy-6, 8, 12);
+        ctx.fillStyle = g.val >= 15 ? '#ffe66d' : '#80ffdb';
+        ctx.fillRect(sx-2, sy-4, 4, 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(sx-2, sy-4, 2, 2);
+      });
+
+      novaFx.forEach(n=>{
+        const [sx,sy] = toScreen(n.x,n.y);
+        const steps = 20;
+        ctx.fillStyle = player.color;
+        for(let i=0;i<steps;i++){
+          const a = (i/steps)*Math.PI*2;
+          const rx = Math.round((sx + Math.cos(a)*n.r)/4)*4;
+          const ry = Math.round((sy + Math.sin(a)*n.r)/4)*4;
+          ctx.fillRect(rx-3, ry-3, 6, 6);
+        }
+        for(let j=0;j<6;j++){
+          const ang = (j/6)*Math.PI*2 + elapsed*5;
+          const wx = sx + Math.cos(ang)*(n.r*0.8);
+          const wy = sy + Math.sin(ang)*(n.r*0.8);
+          drawWeaponSprite(n.heroId || player.id, wepAnimFrame, wx-16, wy-16, 32, 32);
+        }
+      });
+
+      particles.forEach(p=>{
+        const [sx,sy] = toScreen(p.x,p.y);
+        ctx.globalAlpha = Math.max(p.life,0);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(sx-3,sy-3,6,6);
+        ctx.globalAlpha = 1;
+      });
+
+      enemies.forEach(en=>{
+        const [sx,sy] = toScreen(en.x,en.y);
+        ctx.save();
+        if(en.hitFlash>0){ ctx.filter='brightness(2.2)'; }
+        if(en.isElite && !en.isBoss){
+          ctx.fillStyle = 'rgba(255, 45, 95, 0.25)';
+          ctx.fillRect(sx-22, sy-22, 44, 44);
+        }
+        if(en.isBoss && en.state==='telegraph'){
+          ctx.strokeStyle='rgba(255,95,109,0.85)'; ctx.lineWidth=3;
+          ctx.beginPath(); ctx.arc(sx,sy,en.atkRange,0,7); ctx.stroke();
+        }
+        const size = en.isBoss ? 88 : (en.isElite ? 56 : 48);
+        ctx.translate(sx, sy);
+        ctx.scale(en.facing || 1, 1);
+        drawAnimatedSprite(en.spriteKey, en.frame, -size/2, -size/2, size, size);
+        ctx.restore();
+
+        const w = en.isBoss ? 60 : (en.isElite ? 34 : 28);
+        const yOff = en.isBoss ? 48 : (en.isElite ? 30 : 26);
+        ctx.fillStyle='#0d1021'; ctx.fillRect(sx-w/2-1, sy-yOff-1, w+2, 6);
+        ctx.fillStyle= en.isBoss ? '#ffd25f' : (en.isElite ? '#c49bff' : '#ff5f6d');
+        ctx.fillRect(sx-w/2, sy-yOff, Math.round(w*Math.max(0,en.hp/en.maxHp)), 4);
+      });
+
+      hitFxList.forEach(h=>{
+        const [sx,sy] = toScreen(h.x,h.y);
+        drawAnimatedSprite('hitfx', h.frame, sx-16, sy-16, 32, 32);
+      });
+
+      bullets.forEach(b=>{
+        const [sx,sy] = toScreen(b.x,b.y);
+        ctx.save();
+        ctx.translate(sx, sy);
+        if(player.id === 'ninja'){
+          ctx.rotate(b.spin);
+        } else {
+          ctx.rotate(b.ang);
+        }
+        drawWeaponSprite(player.id, wepAnimFrame, -18, -18, 36, 36);
+        ctx.restore();
+      });
+
+      if(player.weapon.type==='orbit'){
+        const count = player.weapon.count + player.countBonus;
+        const radius = player.weapon.range*player.rangeMult*0.55;
+        for(let i=0;i<count;i++){
+          const a = orbitAngle + (i*(Math.PI*2/count));
+          const ox = player.x + Math.cos(a)*radius;
+          const oy = player.y + Math.sin(a)*radius;
+          const [sx,sy] = toScreen(ox,oy);
+          ctx.save();
+          ctx.translate(sx, sy);
+          if(player.id === 'ronin'){
+            ctx.rotate(a * 2.5);
+          }
+          drawWeaponSprite(player.id, wepAnimFrame, -20, -20, 40, 40);
+          ctx.restore();
+        }
+      }
+
+      slashFxList.forEach(s=>{
+        const [sx,sy] = toScreen(s.x,s.y);
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(s.ang);
+        drawAnimatedSprite('slash_arc', s.frame, -24, -24, 48, 48);
+        ctx.restore();
+      });
+
+      // Jugador en versión CHIBI cabezón dentro de la partida
+      const [px,py] = toScreen(player.x,player.y);
+      ctx.save();
+      if(player.invuln>0 && Math.floor(elapsed*20)%2===0){ ctx.globalAlpha=0.45; }
+      if(player.dashTime>0){
+        ctx.fillStyle='#ffffff66';
+        ctx.fillRect(px-22, py-22, 44, 44);
+      }
+      ctx.translate(px, py);
+      ctx.scale(player.facing, 1);
+      if(player.atkSwingTimer > 0){
+        ctx.rotate(0.14);
+      }
+      const frameIdx = player.moving ? playerFrame : (Math.floor(playerFrame/2)%2===0 ? 0 : 3);
+      drawAnimatedSprite(charDef.sprite, frameIdx, -30, -30, 60, 60);
+      ctx.restore();
+
+      // Textos flotantes de daño y bloqueo de armadura
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      floatTexts.forEach(ft=>{
+        const [fx, fy] = toScreen(ft.x, ft.y);
+        ctx.fillStyle = ft.col;
+        ctx.fillText(ft.text, fx, fy);
+      });
+
+      // Flecha direccional en pantalla apuntando hacia el Portal cuando está activo
+      if(activePortal){
+        const ang = Math.atan2(activePortal.y - player.y, activePortal.x - player.x);
+        const dist = Math.hypot(activePortal.x - player.x, activePortal.y - player.y);
+        if(dist > 95){
+          const indX = px + Math.cos(ang)*75;
+          const indY = py + Math.sin(ang)*75;
+          ctx.fillStyle = activePortal.type === 'exit' ? '#ffd25f' : '#c49bff';
+          ctx.fillRect(indX-6, indY-6, 12, 12);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText('PORTAL', indX, indY - 10);
+        }
+      }
+    }
+
+    game = {
+      raf: requestAnimationFrame(loop),
+      stop(){ running=false; if(this.raf) cancelAnimationFrame(this.raf); window.removeEventListener('resize', resize); }
+    };
+  }
+})();
+</script>
+</body>
+</html>
